@@ -3,7 +3,7 @@ name: Build ICS hourly
 on:
   schedule:
     - cron: "0 * * * *"   # hourly (UTC)
-  workflow_dispatch:       # manual run button
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,10 +29,36 @@ jobs:
           python -m pip install --upgrade pip
           # pip install -r requirements.txt
 
-      - name: Generate ICS
+      # Optional but useful: see exactly what the endpoint returns from Actions
+      - name: Probe MLP endpoint (debug)
         run: |
-          python make_mlp_ics_multi.py
-          printf '<!doctype html><meta charset="utf-8"><title>MLP ICS</title><p><a href="mlp.ics">mlp.ics</a>' > index.html
+          URL="https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event?query_by_schedule_uuid=true&schedule_group_uuid=141fe139-b4d2-4846-ac9f-a36b5dd6db41&division_uuid=5668ed34-5aa6-494d-808f-f5512ae89379&selected_date=$(date -u +%F)"
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+          echo "$URL"
+          curl -v -A "$UA" \
+            -H "Referer: https://majorleaguepickleball.co/" \
+            -H "Origin: https://majorleaguepickleball.co" \
+            -H "Accept: application/json, text/plain, */*" \
+            "$URL" || true
+
+      - name: Generate ICS (with debug)
+        run: |
+          python make_mlp_ics_multi.py --debug
+          # Minimal index so Pages lists links
+          cat > index.html << 'HTML'
+          <!doctype html><meta charset="utf-8">
+          <title>MLP ICS</title>
+          <h1>MLP ICS</h1>
+          <ul>
+            <li><a href="mlp.ics">mlp.ics</a></li>
+            <li><a href="mlp-premier.ics">mlp-premier.ics</a></li>
+            <li><a href="mlp-premier-grandstand.ics">mlp-premier-grandstand.ics</a></li>
+            <li><a href="mlp-premier-championship.ics">mlp-premier-championship.ics</a></li>
+            <li><a href="mlp-challenger.ics">mlp-challenger.ics</a></li>
+            <li><a href="mlp-challenger-grandstand.ics">mlp-challenger-grandstand.ics</a></li>
+            <li><a href="mlp-challenger-championship.ics">mlp-challenger-championship.ics</a></li>
+          </ul>
+          HTML
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
