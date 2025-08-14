@@ -2,7 +2,9 @@
 """
 Fetch MLP matchups for today + next 4 days and generate a combined ICS.
 
-- Endpoint:
+Calendar name is fixed to "MLP Matchups" (no date range in the name).
+
+Endpoint:
   https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event
   with query params:
     query_by_schedule_uuid=true
@@ -246,13 +248,6 @@ def main():
         print("No matchups found for the requested date range.", file=sys.stderr)
         sys.exit(1)
 
-    # Calendar name for readability
-    tz = ZoneInfo(args.tz) if (ZoneInfo and args.tz) else None
-    now = datetime.now(tz) if tz else datetime.now()
-    start_day = now.date()
-    end_day = (start_day + timedelta(days=args.days - 1))
-    cal_name = f"MLP Matchups ({start_day.isoformat()} – {end_day.isoformat()})"
-
     dtstamp_utc = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
     lines: List[str] = []
@@ -261,7 +256,7 @@ def main():
     lines.append("PRODID:-//MLP ICS Generator//EN")
     lines.append("CALSCALE:GREGORIAN")
     lines.append("METHOD:PUBLISH")
-    lines.append(f"X-WR-CALNAME:{ics_escape(cal_name)}")
+    lines.append("X-WR-CALNAME:MLP Matchups")          # <-- fixed name (no dates)
     lines.append(f"X-WR-TIMEZONE:{ics_escape(args.tz)}")
 
     # Stable order: by planned_start_date
