@@ -6,11 +6,29 @@ Generate a live-updating **.ics** calendar of Major League Pickleball matchups t
 
 ## Subscribe to this calendar
 
-**Calendar URL:**
+Use any of these URLs when subscribing (pick one or many):
 
-```
-https://noahsw.github.io/mlp-ppa-ics/mlp.ics
-```
+- **Combined (Premier + Challenger, all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp.ics
+
+- **Premier (all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp-premier.ics
+
+- **Premier — Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-premier-grandstand.ics
+
+- **Premier — Championship Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-premier-championship.ics
+
+- **Challenger (all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger.ics
+
+- **Challenger — Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger-grandstand.ics
+
+- **Challenger — Championship Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger-championship.ics
+
+
+> **Tip:** The combined feed is the easiest starting point. Add per‑division/court feeds if you want selective alerts.
+
+---
+
+## Subscribe instructions
+These steps are the same for **any** of the URLs above.
 
 ### iPhone / iPad (iOS)
 
@@ -48,14 +66,7 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ## What this repo does
 
-* Fetches matchups from:
-  `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event`
-  with query params:
-
-  * `query_by_schedule_uuid=true`
-  * `schedule_group_uuid=141fe139-b4d2-4846-ac9f-a36b5dd6db41`
-  * `division_uuid=5668ed34-5aa6-494d-808f-f5512ae89379`
-  * `selected_date=YYYY-MM-DD` (varies per day)
+* Fetches matchups from: `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event`
 * Pulls data for **today + next 4 days** (configurable).
 * De‑dupes by `system_matchups.uuid` and sorts by `planned_start_date`.
 * Emits **UTC** start/end times (your calendar renders them in local time).
@@ -86,7 +97,7 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 ### Running locally
 
 ```bash
-python make_mlp_ics_multi.py --output mlp.ics
+python make_mlp_ics_multi.py
 ```
 
 Options:
@@ -134,7 +145,7 @@ jobs:
 
       - name: Generate ICS
         run: |
-          python make_mlp_ics_multi.py --output mlp.ics
+          python make_mlp_ics_multi.py
           printf '<!doctype html><meta charset="utf-8"><title>MLP ICS</title><p><a href="mlp.ics">mlp.ics</a>' > index.html
 
       - name: Upload artifact for Pages
