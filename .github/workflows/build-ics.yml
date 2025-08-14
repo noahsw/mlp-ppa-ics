@@ -1,0 +1,51 @@
+name: Build ICS hourly
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # hourly, on the hour (UTC)
+  workflow_dispatch:       # manual run
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps (if any)
+        run: |
+          python -m pip install --upgrade pip
+          # pip install -r requirements.txt
+
+      - name: Generate ICS
+        run: |
+          python make_mlp_ics_multi.py --output mlp.ics
+          # tiny index for sanity (optional)
+          printf '<!doctype html><meta charset="utf-8"><title>MLP ICS</title><p><a href="mlp.ics">mlp.ics</a>' > index.html
+
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
