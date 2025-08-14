@@ -2,8 +2,8 @@ name: Build ICS hourly
 
 on:
   schedule:
-    - cron: "0 * * * *"   # hourly, on the hour (UTC)
-  workflow_dispatch:       # manual run
+    - cron: "0 * * * *"   # hourly (UTC)
+  workflow_dispatch:       # manual run button
 
 permissions:
   contents: read
@@ -31,8 +31,7 @@ jobs:
 
       - name: Generate ICS
         run: |
-          python make_mlp_ics_multi.py --output mlp.ics
-          # tiny index for sanity (optional)
+          python make_mlp_ics_multi.py
           printf '<!doctype html><meta charset="utf-8"><title>MLP ICS</title><p><a href="mlp.ics">mlp.ics</a>' > index.html
 
       - name: Upload artifact for Pages
