@@ -31,7 +31,7 @@ import time
 import random
 import argparse
 from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Set
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
@@ -191,8 +191,8 @@ def extract_players(matchup: Dict[str, Any]) -> Tuple[List[str], List[str]]:
     Return (away_players, home_players) for the matchup, unique + sorted.
     team_two = away, team_one = home.
     """
-    t1: set[str] = set()
-    t2: set[str] = set()
+    t1: Set[str] = set()
+    t2: Set[str] = set()
     for m in matchup.get("matches", []) or []:
         # Home (team_one)
         p = _coalesce_full_name(m.get("team_one_player_one_name"),
