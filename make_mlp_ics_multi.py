@@ -264,6 +264,34 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
         desc_parts.append(header_line)
     desc_parts.append(f"Division: {division_name}")
 
+    # Check if game is completed and has scores
+    status = matchup.get("status", "").lower()
+    is_completed = status in ["completed", "finished", "final"] or matchup.get("is_completed", False)
+    
+    if is_completed:
+        # Add overall matchup score if available
+        team_one_score = matchup.get("team_one_score")
+        team_two_score = matchup.get("team_two_score")
+        if team_one_score is not None and team_two_score is not None:
+            desc_parts.append(f"\nFINAL SCORE: {away} {team_two_score} - {team_one_score} {home}")
+        
+        # Add individual game scores if available
+        matches = matchup.get("matches", [])
+        if matches:
+            game_scores = []
+            for i, match in enumerate(matches, 1):
+                t1_score = match.get("team_one_score")
+                t2_score = match.get("team_two_score")
+                court = match.get("court_title", "")
+                if t1_score is not None and t2_score is not None:
+                    court_info = f" ({court})" if court else ""
+                    game_scores.append(f"Game {i}{court_info}: {away} {t2_score} - {t1_score} {home}")
+            
+            if game_scores:
+                desc_parts.append("")
+                desc_parts.append("Individual Games:")
+                desc_parts.extend(game_scores)
+
     away_players, home_players = extract_players(matchup)
     roster_lines = []
     if away_players:
