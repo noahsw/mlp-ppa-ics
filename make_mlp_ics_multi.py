@@ -264,9 +264,9 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
         desc_parts.append(header_line)
     desc_parts.append(f"Division: {division_name}")
 
-    # Check if game is completed and has scores
-    status = matchup.get("status", "").lower()
-    is_completed = status in ["completed", "finished", "final"] or matchup.get("is_completed", False)
+    # Check if matchup is completed and has scores
+    matchup_status = matchup.get("matchup_status", "").upper()
+    is_completed = matchup_status == "COMPLETED_MATCHUP_STATUS"
     
     if is_completed:
         # Add overall matchup score if available
@@ -275,21 +275,34 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
         if team_one_score is not None and team_two_score is not None:
             desc_parts.append(f"\nFINAL SCORE: {away} {team_two_score} - {team_one_score} {home}")
         
-        # Add individual game scores if available
+        # Add individual match scores if available
         matches = matchup.get("matches", [])
         if matches:
             game_scores = []
             for i, match in enumerate(matches, 1):
-                t1_score = match.get("team_one_score")
-                t2_score = match.get("team_two_score")
-                court = match.get("court_title", "")
-                if t1_score is not None and t2_score is not None:
-                    court_info = f" ({court})" if court else ""
-                    game_scores.append(f"Game {i}{court_info}: {away} {t2_score} - {t1_score} {home}")
+                match_status = match.get("match_status")
+                match_completed = match.get("match_completed_type")
+                
+                # Check if individual match is completed (status 4 = completed, completed_type 5 = played)
+                if match_status == 4 and match_completed == 5:
+                    # Get game scores (typically game one scores for MLP format)
+                    t1_game_score = match.get("team_one_game_one_score")
+                    t2_game_score = match.get("team_two_game_one_score")
+                    
+                    if t1_game_score is not None and t2_game_score is not None:
+                        court = match.get("court_title", "")
+                        round_text = match.get("round_text", "")
+                        
+                        # Create descriptive label
+                        game_label = round_text if round_text else f"Match {i}"
+                        if court:
+                            game_label += f" ({court})"
+                        
+                        game_scores.append(f"{game_label}: {away} {t2_game_score} - {t1_game_score} {home}")
             
             if game_scores:
                 desc_parts.append("")
-                desc_parts.append("Individual Games:")
+                desc_parts.append("Individual Match Results:")
                 desc_parts.extend(game_scores)
 
     away_players, home_players = extract_players(matchup)
