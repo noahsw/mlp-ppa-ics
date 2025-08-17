@@ -214,6 +214,12 @@ def extract_players(matchup: Dict[str, Any]) -> Tuple[List[str], List[str]]:
         if p: t2.add(p)
     return (sorted(t2), sorted(t1))
 
+def court_label_from_code(code: Optional[str]) -> Optional[str]:
+    """Convert court code to friendly label."""
+    if not code:
+        return None
+    return COURT_LABELS.get(code, (None, None))[0]
+
 def primary_court_code(matchup: Dict[str, Any]) -> Optional[str]:
     """Extract the primary court code from a matchup."""
     if "matches" in matchup and matchup["matches"]:
