@@ -215,32 +215,29 @@ def extract_players(matchup: Dict[str, Any]) -> Tuple[List[str], List[str]]:
     return (sorted(t2), sorted(t1))
 
 def primary_court_code(matchup: Dict[str, Any]) -> Optional[str]:
-    """
-    Choose a primary court by majority of sub-match 'court_title' (e.g., 'GS', 'CC').
-    If none found, and 'courts' has a single unique title, use it.
-    """
-    titles = [m.get("court_title") for m in matchup.get("matches", []) if m.get("court_title")]
-    code = None
-    if titles:
-        uniq = list(set(titles))
-        code = max(uniq, key=titles.count)
-    if not code:
-        courts = [c.get("title") for c in matchup.get("courts", []) if c.get("title")]
-        if courts and len(set(courts)) == 1:
-            code = courts[0]
-    return code
+    """Extract the primary court code from a matchup."""
+    if "matches" in matchup and matchup["matches"]:
+        # Count court occurrences
+        court_counts = {}
+        for match in matchup["matches"]:
+            court = match.get("court_title")
+            if court:
+                court_counts[court] = court_counts.get(court, 0) + 1
 
-def court_label_from_code(code: Optional[str]) -> Optional[str]:
-    """
-    Map known short codes to full labels. If unknown, return None to avoid showing
-    a two-letter abbreviation in the event title.
-    """
-    if not code:
-        return None
-    label_slug = COURT_LABELS.get(code)
-    if label_slug:
-        return label_slug[0]  # full label
-    return None  # don't fallback to "XX Court" to avoid abbreviations
+        if court_counts:
+            # Return the most common court
+            return max(court_counts, key=court_counts.get)
+
+    # Fallback to courts array if no matches
+    if "courts" in matchup and matchup["courts"]:
+        return matchup["courts"][0].get("title")
+
+    return None
+
+
+def filter_by_primary_court(matchups: List[Dict[str, Any]], court_code: str) -> List[Dict[str, Any]]:
+    """Filter matchups by primary court code."""
+    return [m for m in matchups if primary_court_code(m) == court_code]
 
 def make_event_title(matchup: Dict[str, Any]) -> str:
     away = (matchup.get("team_two_title") or "").strip()
@@ -267,14 +264,14 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
     # Check if matchup is completed and has scores
     matchup_status = matchup.get("matchup_status", "")
     is_completed = matchup_status == "COMPLETED_MATCHUP_STATUS"
-    
+
     if is_completed:
         # Add overall matchup score if available
         team_one_score = matchup.get("team_one_score")
         team_two_score = matchup.get("team_two_score")
         if team_one_score is not None and team_two_score is not None:
             desc_parts.append(f"\nFINAL SCORE: {away} {team_two_score} - {team_one_score} {home}")
-        
+
         # Add individual match scores if available
         matches = matchup.get("matches", [])
         if matches:
@@ -282,28 +279,28 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
             for i, match in enumerate(matches, 1):
                 match_status = match.get("match_status")
                 match_completed_type = match.get("match_completed_type")
-                
-                # Check if individual match is completed 
+
+                # Check if individual match is completed
                 if match_status == 4 and match_completed_type == 5:
                     # Get the actual game scores from the match
                     t1_score = match.get("team_one_score")
                     t2_score = match.get("team_two_score")
-                    
+
                     if t1_score is not None and t2_score is not None:
                         court = match.get("court_title", "")
                         round_text = match.get("round_text", "")
-                        
+
                         # Create descriptive label
                         if round_text:
                             game_label = round_text
                         else:
                             game_label = f"Match {i}"
-                        
+
                         if court:
                             game_label += f" ({court})"
-                        
+
                         game_scores.append(f"{game_label}: {away} {t2_score} - {t1_score} {home}")
-            
+
             if game_scores:
                 desc_parts.append("")
                 desc_parts.append("Individual Match Results:")
@@ -376,9 +373,9 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
             title = make_event_title(m)
             status = m.get("matchup_status", "")
             is_completed = status == "COMPLETED_MATCHUP_STATUS"
-            
+
             debug_line = f"  - {m.get('planned_start_date','?')}  {title}"
-            
+
             if is_completed:
                 team_one_score = m.get("team_one_score")
                 team_two_score = m.get("team_two_score")
@@ -390,7 +387,7 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
                     debug_line += " [COMPLETED - no scores]"
             else:
                 debug_line += f" [STATUS: {status}]"
-            
+
             print(debug_line)
     return lst
 
