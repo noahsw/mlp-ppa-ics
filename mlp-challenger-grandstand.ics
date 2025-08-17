@@ -7,35 +7,44 @@ X-WR-CALNAME:MLP Matchups
 X-WR-TIMEZONE:America/Los_Angeles
 BEGIN:VEVENT
 UID:a10c2852-2df2-4ced-8d0b-7c5f1b0d55a4@mlp
-DTSTAMP:20250816T224053Z
+DTSTAMP:20250816T230707Z
 DTSTART:20250816T180000Z
 DTEND:20250816T192000Z
 SUMMARY:Bay Area Breakers vs. Las Vegas Night Owls (Grandstand Court)
 LOCATION:Barnes Tennis Center
 DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
- ion: Challenger\n\nPlayers (if listed):\nBay Area Breakers: Alix Truong\; A
- ngie Walker\; Darrian Young\; Jonathan Truong\nLas Vegas Night Owls: Brooke
-  Buckner\; Chao Yi Wang\; James Delgado\; Pablo Tellez
+ ion: Challenger\n\nFINAL SCORE: Bay Area Breakers 1 - 3 Las Vegas Night Owl
+ s\n\nIndividual Match Results:\nWomens Doubles (GS): Bay Area Breakers 7 - 
+ 11 Las Vegas Night Owls\nMens Doubles (GS): Bay Area Breakers 1 - 11 Las Ve
+ gas Night Owls\nMixed 1 (GS): Bay Area Breakers 11 - 2 Las Vegas Night Owls
+ \nMixed 2 (GS): Bay Area Breakers 5 - 11 Las Vegas Night Owls\n\nPlayers (i
+ f listed):\nBay Area Breakers: Alix Truong\; Angie Walker\; Darrian Young\;
+  Jonathan Truong\nLas Vegas Night Owls: Brooke Buckner\; Chao Yi Wang\; Jam
+ es Delgado\; Pablo Tellez
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:813a2054-fd52-4c5c-94e2-f9bba7c6e4ec@mlp
-DTSTAMP:20250816T224053Z
+DTSTAMP:20250816T230707Z
 DTSTART:20250816T194500Z
 DTEND:20250816T210500Z
 SUMMARY:California Black Bears vs. Nashville Chefs (Grandstand Court)
 LOCATION:Barnes Tennis Center
 DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
- ion: Challenger\n\nPlayers (if listed):\nCalifornia Black Bears: Layne Slee
- th\; Lina Padegimaite\; Martin Emmrich\; Michael Loyd\nNashville Chefs: And
- erson Scarpa\; Ewa Radzikowska\; Genie Erokhina\; Marshall Brown
+ ion: Challenger\n\nFINAL SCORE: California Black Bears 0 - 3 Nashville Chef
+ s\n\nIndividual Match Results:\nWomens Doubles (GS): California Black Bears
+  5 - 11 Nashville Chefs\nMens Doubles (GS): California Black Bears 5 - 11 N
+ ashville Chefs\nMixed 1 (GS): California Black Bears 2 - 11 Nashville Chefs
+ \n\nPlayers (if listed):\nCalifornia Black Bears: Layne Sleeth\; Lina Padeg
+ imaite\; Martin Emmrich\; Michael Loyd\nNashville Chefs: Anderson Scarpa\; 
+ Ewa Radzikowska\; Genie Erokhina\; Marshall Brown
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:b49a4398-08cb-4498-bf9a-18f171a4607c@mlp
-DTSTAMP:20250816T224053Z
+DTSTAMP:20250816T230707Z
 DTSTART:20250816T231500Z
 DTEND:20250817T003500Z
 SUMMARY:California Black Bears vs. Nashville Chefs (Grandstand Court)
@@ -49,7 +58,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:dd0aa7f9-7308-4a2e-9a57-4a27a8c28040@mlp
-DTSTAMP:20250816T224053Z
+DTSTAMP:20250816T230707Z
 DTSTART:20250817T231500Z
 DTEND:20250818T003500Z
 SUMMARY:California Black Bears vs. Nashville Chefs (Grandstand Court)
