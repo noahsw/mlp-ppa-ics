@@ -249,13 +249,11 @@ class TestMLPICSGenerator(unittest.TestCase):
             {"matches": [], "uuid": "4"}
         ]
         
-        gs_filtered = mlp.filter_by_primary_court(matchups, "GS")
-        self.assertEqual(len(gs_filtered), 2)
-        self.assertEqual([m["uuid"] for m in gs_filtered], ["1", "3"])
-        
-        cc_filtered = mlp.filter_by_primary_court(matchups, "CC")
-        self.assertEqual(len(cc_filtered), 1)
-        self.assertEqual(cc_filtered[0]["uuid"], "2")
+        # Test primary court detection
+        self.assertEqual(mlp.primary_court_code(matchups[0]), "GS")
+        self.assertEqual(mlp.primary_court_code(matchups[1]), "CC")
+        self.assertEqual(mlp.primary_court_code(matchups[2]), "GS")
+        self.assertIsNone(mlp.primary_court_code(matchups[3]))
 
     def test_ics_file_writing(self):
         """Test writing ICS file"""
@@ -263,7 +261,7 @@ class TestMLPICSGenerator(unittest.TestCase):
             test_file = os.path.join(temp_dir, "test.ics")
             matchups = [self.sample_completed_matchup]
             
-            mlp.write_ics(test_file, matchups, "America/Los_Angeles")
+            mlp.write_ics(test_file, matchups, "America/Los_Angeles", debug=False)
             
             # Verify file was created
             self.assertTrue(os.path.exists(test_file))
@@ -289,7 +287,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         mock_fetch.return_value = mock_response
         
         matchups = mlp.collect_matchups_for_division(
-            "Premier", "test-division-uuid", 1, "America/Los_Angeles"
+            "Premier", "test-division-uuid", 1, "America/Los_Angeles", debug=False
         )
         
         self.assertEqual(len(matchups), 1)
@@ -302,7 +300,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         mock_fetch.return_value = None  # Simulate API failure
         
         matchups = mlp.collect_matchups_for_division(
-            "Premier", "test-division-uuid", 1, "America/Los_Angeles"
+            "Premier", "test-division-uuid", 1, "America/Los_Angeles", debug=False
         )
         
         self.assertEqual(len(matchups), 0)
