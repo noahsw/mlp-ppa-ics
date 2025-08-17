@@ -16,6 +16,7 @@ import unittest
 import json
 import tempfile
 import os
+import sys
 from datetime import datetime, timezone
 from unittest.mock import patch, MagicMock
 
@@ -161,19 +162,19 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_player_name_coalescing(self):
         """Test player name fallback logic"""
         # Test full name priority
-        result = mlp._coalesce_full_name("Full Name", "First", "Last")
+        result = mlp.coalesce_full_name("Full Name", "First", "Last")
         self.assertEqual(result, "Full Name")
 
         # Test first + last fallback
-        result = mlp._coalesce_full_name(None, "First", "Last")
+        result = mlp.coalesce_full_name(None, "First", "Last")
         self.assertEqual(result, "First Last")
 
         # Test single name
-        result = mlp._coalesce_full_name(None, "First", None)
+        result = mlp.coalesce_full_name(None, "First", None)
         self.assertEqual(result, "First")
 
         # Test empty
-        result = mlp._coalesce_full_name(None, None, None)
+        result = mlp.coalesce_full_name(None, None, None)
         self.assertIsNone(result)
 
     def test_ics_escaping(self):
@@ -198,7 +199,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_completed_matchup_event_generation(self):
         """Test event generation for completed matchup with scores"""
         dtstamp = "20250101T120000Z"
-        event_lines = mlp.build_event(self.sample_completed_matchup, dtstamp, "Premier")
+        event_lines = mlp.build_ics_event(self.sample_completed_matchup, dtstamp)
         
         event_text = "\n".join(event_lines)
         
@@ -220,7 +221,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_in_progress_matchup_event_generation(self):
         """Test event generation for in-progress matchup"""
         dtstamp = "20250101T120000Z"
-        event_lines = mlp.build_event(self.sample_in_progress_matchup, dtstamp, "Challenger")
+        event_lines = mlp.build_ics_event(self.sample_in_progress_matchup, dtstamp)
         
         event_text = "\n".join(event_lines)
         
@@ -232,7 +233,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_upcoming_matchup_event_generation(self):
         """Test event generation for upcoming matchup"""
         dtstamp = "20250101T120000Z"
-        event_lines = mlp.build_event(self.sample_upcoming_matchup, dtstamp, "Premier")
+        event_lines = mlp.build_ics_event(self.sample_upcoming_matchup, dtstamp)
         
         event_text = "\n".join(event_lines)
         
@@ -318,7 +319,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         }
         
         dtstamp = "20250101T120000Z"
-        event_lines = mlp.build_event(empty_matchup, dtstamp, "Test")
+        event_lines = mlp.build_ics_event(empty_matchup, dtstamp)
         event_text = "\n".join(event_lines)
         
         # Should handle empty team names gracefully
@@ -349,7 +350,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         }
         
         dtstamp = "20250101T120000Z"
-        event_lines = mlp.build_event(incomplete_scores_matchup, dtstamp, "Premier")
+        event_lines = mlp.build_ics_event(incomplete_scores_matchup, dtstamp)
         event_text = "\n".join(event_lines)
         
         # Should have overall score but not individual match scores
