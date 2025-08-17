@@ -374,7 +374,24 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
         print(f"[{division_name}] total unique matchups: {len(lst)}")
         for m in lst:
             title = make_event_title(m)
-            print(f"  - {m.get('planned_start_date','?')}  {title}")
+            status = m.get("matchup_status", "")
+            is_completed = status == "COMPLETED_MATCHUP_STATUS"
+            
+            debug_line = f"  - {m.get('planned_start_date','?')}  {title}"
+            
+            if is_completed:
+                team_one_score = m.get("team_one_score")
+                team_two_score = m.get("team_two_score")
+                if team_one_score is not None and team_two_score is not None:
+                    away = (m.get("team_two_title") or "").strip()
+                    home = (m.get("team_one_title") or "").strip()
+                    debug_line += f" [FINAL: {away} {team_two_score} - {team_one_score} {home}]"
+                else:
+                    debug_line += " [COMPLETED - no scores]"
+            else:
+                debug_line += f" [STATUS: {status}]"
+            
+            print(debug_line)
     return lst
 
 def write_ics(path: str, matchups: List[Dict[str, Any]], tz_name: str, debug: bool = False):
