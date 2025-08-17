@@ -265,7 +265,7 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
     desc_parts.append(f"Division: {division_name}")
 
     # Check if matchup is completed and has scores
-    matchup_status = matchup.get("matchup_status", "").upper()
+    matchup_status = matchup.get("matchup_status", "")
     is_completed = matchup_status == "COMPLETED_MATCHUP_STATUS"
     
     if is_completed:
@@ -281,24 +281,28 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
             game_scores = []
             for i, match in enumerate(matches, 1):
                 match_status = match.get("match_status")
-                match_completed = match.get("match_completed_type")
+                match_completed_type = match.get("match_completed_type")
                 
-                # Check if individual match is completed (status 4 = completed, completed_type 5 = played)
-                if match_status == 4 and match_completed == 5:
-                    # Get game scores (typically game one scores for MLP format)
-                    t1_game_score = match.get("team_one_game_one_score")
-                    t2_game_score = match.get("team_two_game_one_score")
+                # Check if individual match is completed 
+                if match_status == 4 and match_completed_type == 5:
+                    # Get the actual game scores from the match
+                    t1_score = match.get("team_one_score")
+                    t2_score = match.get("team_two_score")
                     
-                    if t1_game_score is not None and t2_game_score is not None:
+                    if t1_score is not None and t2_score is not None:
                         court = match.get("court_title", "")
                         round_text = match.get("round_text", "")
                         
                         # Create descriptive label
-                        game_label = round_text if round_text else f"Match {i}"
+                        if round_text:
+                            game_label = round_text
+                        else:
+                            game_label = f"Match {i}"
+                        
                         if court:
                             game_label += f" ({court})"
                         
-                        game_scores.append(f"{game_label}: {away} {t2_game_score} - {t1_game_score} {home}")
+                        game_scores.append(f"{game_label}: {away} {t2_score} - {t1_score} {home}")
             
             if game_scores:
                 desc_parts.append("")
