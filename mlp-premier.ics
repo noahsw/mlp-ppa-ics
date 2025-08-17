@@ -7,24 +7,22 @@ X-WR-CALNAME:MLP Matchups
 X-WR-TIMEZONE:America/Los_Angeles
 BEGIN:VEVENT
 UID:a235d1fe-0f9e-48f2-9c81-4be86fee9c68@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250816T183000Z
 DTEND:20250816T195000Z
 SUMMARY:Texas Ranchers vs. New Jersey 5s (Championship Court)
 LOCATION:Barnes Tennis Center
 DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
- ion: Premier\n\nFINAL SCORE: Texas Ranchers 0 - 3 New Jersey 5s\n\nIndividu
- al Match Results:\nWomens Doubles (CC): Texas Ranchers 10 - 12 New Jersey 5
- s\nMens Doubles (CC): Texas Ranchers 6 - 11 New Jersey 5s\nMixed 1 (CC): Te
- xas Ranchers 4 - 11 New Jersey 5s\n\nPlayers (if listed):\nTexas Ranchers: 
- Christian Alshon\; Eric Oncins\; Kaitlyn Christian\; Tina Pisnik\nNew Jerse
- y 5s: Anna Leigh Waters\; Meghan Dizon\; Noe Khlif\; Will Howells
+ ion: Premier\n\nFINAL SCORE: Texas Ranchers 0 - 3 New Jersey 5s\n\nPlayers 
+ (if listed):\nTexas Ranchers: Christian Alshon\; Eric Oncins\; Kaitlyn Chri
+ stian\; Tina Pisnik\nNew Jersey 5s: Anna Leigh Waters\; Meghan Dizon\; Noe 
+ Khlif\; Will Howells
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:d6cde113-14dc-436f-9d32-79d5dc567946@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250816T201500Z
 DTEND:20250816T213500Z
 SUMMARY:Los Angeles Mad Drops vs. Brooklyn Pickleball Team (Championship Co
@@ -32,19 +30,15 @@ SUMMARY:Los Angeles Mad Drops vs. Brooklyn Pickleball Team (Championship Co
 LOCATION:Barnes Tennis Center
 DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
  ion: Premier\n\nFINAL SCORE: Los Angeles Mad Drops 3 - 0 Brooklyn Picklebal
- l Team\n\nIndividual Match Results:\nWomens Doubles (CC): Los Angeles Mad D
- rops 11 - 6 Brooklyn Pickleball Team\nMens Doubles (CC): Los Angeles Mad Dr
- ops 11 - 1 Brooklyn Pickleball Team\nMixed 1 (CC): Los Angeles Mad Drops 11
-  - 3 Brooklyn Pickleball Team\n\nPlayers (if listed):\nLos Angeles Mad Drop
- s: Ben Johns\; Catherine Parenteau\; Hunter Johnson\; Jade Kawamoto\nBrookl
- yn Pickleball Team: Dekel Bar\; Jackie Kawamoto\; Rachel Rohrabacher\; Rile
- y Newman
+ l Team\n\nPlayers (if listed):\nLos Angeles Mad Drops: Ben Johns\; Catherin
+ e Parenteau\; Hunter Johnson\; Jade Kawamoto\nBrooklyn Pickleball Team: Dek
+ el Bar\; Jackie Kawamoto\; Rachel Rohrabacher\; Riley Newman
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:440b061d-f9ca-49f6-9d20-ab8cab2482ab@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250816T220000Z
 DTEND:20250816T232000Z
 SUMMARY:Orlando Squeeze vs. St. Louis Shock (Championship Court)
@@ -58,7 +52,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:722f7d65-fe2c-4dcb-a801-51f9576c2ef7@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T000000Z
 DTEND:20250817T012000Z
 SUMMARY:Columbus Sliders vs. Dallas Flash (Championship Court)
@@ -72,7 +66,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:da8f5fdc-2d37-44ed-936f-fb5f5c276a8d@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T170000Z
 DTEND:20250817T182000Z
 SUMMARY:Texas Ranchers vs. New Jersey 5s (Championship Court)
@@ -84,7 +78,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:9b35a669-0d04-4954-a3dc-a8bf1b1dfc34@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T180000Z
 DTEND:20250817T192000Z
 SUMMARY:Orlando Squeeze vs. St. Louis Shock
@@ -96,20 +90,21 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:a0c813b9-9b17-4cba-ae10-2da05885aa6a@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T193000Z
 DTEND:20250817T205000Z
 SUMMARY:Los Angeles Mad Drops vs. Brooklyn Pickleball Team (Championship Co
  urt)
 LOCATION:Barnes Tennis Center
 DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
- ion: Premier
+ ion: Premier\n\nPlayers (if listed):\nLos Angeles Mad Drops: Ben Johns\; Ca
+ therine Parenteau\; Hunter Johnson\; Jade Kawamoto
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:4c7e0458-46bd-4076-8b77-d6d2fa6a84c7@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T194500Z
 DTEND:20250817T210500Z
 SUMMARY:Columbus Sliders vs. Dallas Flash
@@ -121,7 +116,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:238aa39f-d021-4f03-802a-b176de7528ba@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T211500Z
 DTEND:20250817T223500Z
 SUMMARY:Texas Ranchers vs. New Jersey 5s
@@ -133,7 +128,7 @@ TRANSP:OPAQUE
 END:VEVENT
 BEGIN:VEVENT
 UID:9b9d607d-d878-48e7-a2c4-42ca1782dd52@mlp
-DTSTAMP:20250816T230707Z
+DTSTAMP:20250817T000948Z
 DTSTART:20250817T230000Z
 DTEND:20250818T002000Z
 SUMMARY:Los Angeles Mad Drops vs. Brooklyn Pickleball Team
