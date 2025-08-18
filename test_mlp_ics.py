@@ -192,7 +192,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_datetime_formatting(self):
         """Test UTC datetime formatting for ICS"""
         dt_str = "2025-08-16T18:30:00Z"
-        expected = "20250101T120000Z"
+        expected = "20250816T183000Z"
         self.assertEqual(mlp.fmt_dt_utc(dt_str), expected)
 
     def test_completed_matchup_event_generation(self):
@@ -215,9 +215,14 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertIn("Game 2", event_text)
         self.assertIn("Away Team 7 - 11 Home Team", event_text)
 
-        # Check for player information (accounting for ICS escaping)
+        # Check for player information (accounting for ICS escaping and line folding)
         self.assertIn("Alice Brown\\; Bob Wilson", event_text)
-        self.assertIn("Jane Smith\\; John Doe", event_text)
+        # Handle potential line folding in ICS output by checking for the pattern with possible line breaks
+        import re
+        jane_john_pattern = r"Jane Smith\\; John Doe"
+        # Remove line breaks and spaces that might be from ICS line folding
+        normalized_text = re.sub(r'\\\s*\n\s*', '', event_text)
+        self.assertRegex(normalized_text, jane_john_pattern)
 
     def test_in_progress_matchup_event_generation(self):
         """Test event generation for in-progress matchup"""
