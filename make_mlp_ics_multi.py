@@ -11,7 +11,7 @@ Outputs (7 files):
 - mlp-challenger-grandstand.ics
 - mlp-challenger-championship.ics
 
-Pulls data for today + next 4 days (configurable via --days).
+Pulls data for yesterday + today + next 4 days (configurable via --days).
 Calendar display name (X-WR-CALNAME) is fixed to "MLP Matchups".
 Event titles always use full court names when known, never two-letter codes.
 
@@ -351,10 +351,11 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
     today_local = now.date()
 
     if debug:
-        print(f"\n== Collecting: {division_name} (next {days} day(s), tz={tz_name}) ==")
+        print(f"\n== Collecting: {division_name} (yesterday + next {days} day(s), tz={tz_name}) ==")
 
     dedup: Dict[str, Dict[str, Any]] = {}
-    for i in range(days):
+    # Start from yesterday (-1) and go through the specified number of days
+    for i in range(-1, days):
         day = today_local + timedelta(days=i)
         url = build_url(day.strftime("%Y-%m-%d"), division_uuid)
         data = fetch_json(url, debug=debug)
@@ -433,7 +434,7 @@ def filter_by_primary_court(matchups: List[Dict[str, Any]], want_code: str) -> L
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--days", type=int, default=5, help="Number of days starting today (default 5)")
+    ap.add_argument("--days", type=int, default=5, help="Number of days after yesterday (default 5, includes yesterday + today + next 3 days)")
     ap.add_argument("--tz", default="America/Los_Angeles", help="Timezone for 'today' (IANA name)")
     ap.add_argument("--debug", action="store_true", help="Print verbose debug info (titles, counts, URLs)")
     args = ap.parse_args()
