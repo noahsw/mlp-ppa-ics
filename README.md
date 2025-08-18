@@ -103,9 +103,53 @@ python make_mlp_ics_multi.py
 Options:
 
 * `--days 5` – number of days starting **today** (default 5)
-* `--tz America/Los_Angeles` – timezone used to compute “today” (default `America/Los_Angeles`)
+* `--tz America/Los_Angeles` – timezone used to compute "today" (default `America/Los_Angeles`)
 * `--url <base-url>` – override the base endpoint if needed
 * `--output mlp.ics` – output file path
+
+### Testing
+
+The project includes comprehensive test coverage for the ICS generation logic.
+
+#### Running tests
+
+```bash
+# Run all tests with detailed output
+python run_tests.py
+
+# Run tests using unittest directly
+python test_mlp_ics.py
+
+# Run with pytest (if available)
+python -m pytest test_mlp_ics.py -v
+```
+
+#### Test files
+
+* **`test_mlp_ics.py`** – Main test suite covering:
+  * Completed matchups with scores
+  * In-progress matchups
+  * Upcoming matchups
+  * Court filtering and naming
+  * Player name extraction
+  * ICS formatting and escaping
+  * Edge cases and error handling
+
+* **`test_sample_data.py`** – Generates sample API response data for testing
+
+* **`run_tests.py`** – Test runner with detailed reporting
+
+#### Test coverage includes
+
+* Event title generation with court names
+* Score formatting for completed games
+* Player name extraction and display
+* ICS special character escaping
+* UTC datetime formatting
+* API response handling
+* Court code mapping
+* Division filtering
+
 
 ### Automation / Deploy (GitHub Pages + Actions)
 
