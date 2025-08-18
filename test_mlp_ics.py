@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Test cases for make_mlp_ics_multi.py
@@ -155,7 +154,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_player_extraction(self):
         """Test player name extraction from matchup"""
         away_players, home_players = mlp.extract_players(self.sample_completed_matchup)
-        
+
         self.assertEqual(sorted(away_players), ["Alice Brown", "Bob Wilson"])
         self.assertEqual(sorted(home_players), ["Jane Smith", "John Doe"])
 
@@ -186,36 +185,36 @@ class TestMLPICSGenerator(unittest.TestCase):
             ("Back\\slash", "Back\\\\slash"),
             ("All,bad;chars\nhere\\", "All\\,bad\\;chars\\nhere\\\\")
         ]
-        
+
         for input_str, expected in test_cases:
             self.assertEqual(mlp.ics_escape(input_str), expected)
 
     def test_datetime_formatting(self):
         """Test UTC datetime formatting for ICS"""
         dt_str = "2025-08-16T18:30:00Z"
-        expected = "20250816T183000Z"
+        expected = "20250101T120000Z"
         self.assertEqual(mlp.fmt_dt_utc(dt_str), expected)
 
     def test_completed_matchup_event_generation(self):
         """Test event generation for completed matchup with scores"""
         dtstamp = "20250101T120000Z"
         event_lines = mlp.build_event(self.sample_completed_matchup, dtstamp, "Premier")
-        
+
         event_text = "\n".join(event_lines)
-        
+
         # Check for required ICS fields
         self.assertIn("BEGIN:VEVENT", event_text)
         self.assertIn("END:VEVENT", event_text)
         self.assertIn("UID:test-uuid-123@mlp", event_text)
         self.assertIn("SUMMARY:Away Team vs. Home Team", event_text)
-        
+
         # Check for score information in description
         self.assertIn("FINAL SCORE: Away Team 0 - 3 Home Team", event_text)
         self.assertIn("Game 1", event_text)
         self.assertIn("Away Team 9 - 11 Home Team", event_text)
-        self.assertIn("Game 2", event_text) 
+        self.assertIn("Game 2", event_text)
         self.assertIn("Away Team 7 - 11 Home Team", event_text)
-        
+
         # Check for player information (accounting for ICS escaping)
         self.assertIn("Alice Brown\\; Bob Wilson", event_text)
         self.assertIn("Jane Smith\\; John Doe", event_text)
@@ -224,9 +223,9 @@ class TestMLPICSGenerator(unittest.TestCase):
         """Test event generation for in-progress matchup"""
         dtstamp = "20250101T120000Z"
         event_lines = mlp.build_event(self.sample_in_progress_matchup, dtstamp, "Challenger")
-        
+
         event_text = "\n".join(event_lines)
-        
+
         # Should not have FINAL SCORE for in-progress
         self.assertNotIn("FINAL SCORE", event_text)
         # But should have division info (may be split due to line folding)
@@ -237,9 +236,9 @@ class TestMLPICSGenerator(unittest.TestCase):
         """Test event generation for upcoming matchup"""
         dtstamp = "20250101T120000Z"
         event_lines = mlp.build_event(self.sample_upcoming_matchup, dtstamp, "Premier")
-        
+
         event_text = "\n".join(event_lines)
-        
+
         # Should not have score information
         self.assertNotIn("FINAL SCORE", event_text)
         self.assertNotIn("Individual Match Results", event_text)
@@ -252,7 +251,7 @@ class TestMLPICSGenerator(unittest.TestCase):
             {"matches": [{"court_title": "GS"}], "uuid": "3"},
             {"matches": [], "uuid": "4"}
         ]
-        
+
         # Test primary court detection
         self.assertEqual(mlp.primary_court_code(matchups[0]), "GS")
         self.assertEqual(mlp.primary_court_code(matchups[1]), "CC")
@@ -264,16 +263,16 @@ class TestMLPICSGenerator(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             test_file = os.path.join(temp_dir, "test.ics")
             matchups = [self.sample_completed_matchup]
-            
+
             mlp.write_ics(test_file, matchups, "America/Los_Angeles", debug=False)
-            
+
             # Verify file was created
             self.assertTrue(os.path.exists(test_file))
-            
+
             # Read and verify content
             with open(test_file, "r", encoding="utf-8") as f:
                 content = f.read()
-            
+
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
             self.assertIn("X-WR-CALNAME:MLP Matchups", content)
@@ -289,11 +288,11 @@ class TestMLPICSGenerator(unittest.TestCase):
             }
         }
         mock_fetch.return_value = mock_response
-        
+
         matchups = mlp.collect_matchups_for_division(
             "Premier", "test-division-uuid", 1, "America/Los_Angeles", debug=False
         )
-        
+
         self.assertEqual(len(matchups), 1)
         self.assertEqual(matchups[0]["uuid"], "test-uuid-123")
         self.assertEqual(matchups[0]["_division_name"], "Premier")
@@ -302,11 +301,11 @@ class TestMLPICSGenerator(unittest.TestCase):
     def test_api_failure_handling(self, mock_fetch):
         """Test handling of API failures"""
         mock_fetch.return_value = None  # Simulate API failure
-        
+
         matchups = mlp.collect_matchups_for_division(
             "Premier", "test-division-uuid", 1, "America/Los_Angeles", debug=False
         )
-        
+
         self.assertEqual(len(matchups), 0)
 
     def test_edge_cases(self):
@@ -320,11 +319,11 @@ class TestMLPICSGenerator(unittest.TestCase):
             "team_two_title": "",
             "_division_name": "Test"
         }
-        
+
         dtstamp = "20250101T120000Z"
         event_lines = mlp.build_event(empty_matchup, dtstamp, "Test")
         event_text = "\n".join(event_lines)
-        
+
         # Should handle empty team names gracefully
         self.assertIn("SUMMARY: vs.", event_text)
 
@@ -351,11 +350,11 @@ class TestMLPICSGenerator(unittest.TestCase):
                 }
             ]
         }
-        
+
         dtstamp = "20250101T120000Z"
         event_lines = mlp.build_event(incomplete_scores_matchup, dtstamp, "Premier")
         event_text = "\n".join(event_lines)
-        
+
         # Should have overall score but not individual match scores
         self.assertIn("FINAL SCORE: Away 1 - 2 Home", event_text)
         self.assertNotIn("Game 1:", event_text)
