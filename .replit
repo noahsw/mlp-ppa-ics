@@ -6,3 +6,14 @@ channel = "stable-25_05"
 
 [deployment]
 run = ["sh", "-c", "python make_mlp_ics_multi.py"]
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Tests"
+mode = "sequential"
+author = 46176732
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python run_tests.py"
