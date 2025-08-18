@@ -216,9 +216,9 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertIn("Game 2", event_text) 
         self.assertIn("Away Team 7 - 11 Home Team", event_text)
         
-        # Check for player information
-        self.assertIn("Alice Brown; Bob Wilson", event_text)
-        self.assertIn("Jane Smith; John Doe", event_text)
+        # Check for player information (accounting for ICS escaping)
+        self.assertIn("Alice Brown\\; Bob Wilson", event_text)
+        self.assertIn("Jane Smith\\; John Doe", event_text)
 
     def test_in_progress_matchup_event_generation(self):
         """Test event generation for in-progress matchup"""
