@@ -356,8 +356,8 @@ class TestMLPICSGenerator(unittest.TestCase):
             "uuid": "test-incomplete",
             "planned_start_date": "2025-08-16T18:30:00Z",
             "planned_end_date": "2025-08-16T19:50:00Z",
-            "team_one_title": "Home",
-            "team_two_title": "Away",
+            "team_one_title": "Utah Black Diamonds",
+            "team_two_title": "Brooklyn Aces",
             "team_one_score": 2,
             "team_two_score": 1,
             "matchup_status": "COMPLETED_MATCHUP_STATUS",
@@ -378,7 +378,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         event_text = "\n".join(event_lines)
 
         # Should have overall score but not individual match scores
-        self.assertIn("FINAL SCORE: Away 1 - 2 Home", event_text)
+        self.assertIn("FINAL SCORE: Brooklyn Aces 1 - 2 Utah Black Diamonds", event_text)
         self.assertNotIn("Game 1:", event_text)
 
 
