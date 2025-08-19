@@ -5,9 +5,10 @@ run = "python make_mlp_ics_multi.py"
 channel = "stable-25_05"
 
 [deployment]
-run = ["sh", "-c", "python make_mlp_ics_multi.py"]
+run = ["sh", "-c", "python make_mlp_ics_multi.py", "--debug"]
 
 [workflows]
+runButton = "Run"
 
 [[workflows.workflow]]
 name = "Tests"
@@ -17,3 +18,12 @@ author = 46176732
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python run_tests.py"
+
+[[workflows.workflow]]
+name = "Run"
+author = 46176732
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python make_mlp_ics_multi.py --debug"
