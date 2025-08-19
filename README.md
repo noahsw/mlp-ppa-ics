@@ -66,13 +66,15 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ## What this repo does
 
+* Fetches active tournaments from: `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/event-matches`
 * Fetches matchups from: `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event`
-* Pulls data for **today + next 4 days** (configurable).
+* Pulls data for **yesterday + today + next 4 days** (configurable via `--days`).
+* Only fetches matchups for tournaments whose dates overlap with the date range (avoids fetching old or far-future events).
 * De‑dupes by `system_matchups.uuid` and sorts by `planned_start_date`.
 * Emits **UTC** start/end times (your calendar renders them in local time).
 * **Event title**: `Away vs. Home (Court)` — e.g., `Miami Pickleball Club vs. Texas Ranchers (Grandstand Court)`.
-* **Court names** mapped (`GS → Grandstand Court`, `CC → Center Court`), unknown codes default to `"<code> Court"`.
-* **DESCRIPTION** includes league + event group and, when available, **player names** for each team.
+* **Court names** mapped (`GS → Grandstand Court`, `CC → Championship Court`), unknown codes default to `"<code> Court"`.
+* **DESCRIPTION** includes league + event group, **final scores** for completed matches, and **player names** when available.
 * Calendar display name is fixed to **MLP Matchups**.
 
 ---
@@ -102,10 +104,9 @@ python make_mlp_ics_multi.py
 
 Options:
 
-* `--days 5` – number of days starting **today** (default 5)
+* `--days 5` – number of days after yesterday (default 5, includes yesterday + today + next 3 days)
 * `--tz America/Los_Angeles` – timezone used to compute "today" (default `America/Los_Angeles`)
-* `--url <base-url>` – override the base endpoint if needed
-* `--output mlp.ics` – output file path
+* `--debug` – print verbose debug info (titles, counts, URLs)
 
 ### Testing
 
@@ -142,79 +143,31 @@ python -m pytest test_mlp_ics.py -v
 #### Test coverage includes
 
 * Event title generation with court names
-* Score formatting for completed games
+* Score formatting for completed games (including individual match results)
 * Player name extraction and display
 * ICS special character escaping
 * UTC datetime formatting
 * API response handling
 * Court code mapping
 * Division filtering
+* Dynamic event fetching and date range filtering
+* Edge cases and error handling
 
 
-### Automation / Deploy (GitHub Pages + Actions)
+### Automation / Deploy (Replit Deployments)
 
-Enable **Settings → Pages → Build and deployment = GitHub Actions** and use this workflow at `.github/workflows/build-ics.yml`:
+This project can be deployed on Replit using Deployments for automatic hosting and scheduling:
 
-```yaml
-name: Build ICS hourly
+1. **Deploy on Replit**: Use the Deployments feature to publish your project
+2. **Schedule updates**: Set up a cron job or periodic task to run the script automatically
+3. **Serve files**: The generated `.ics` files will be accessible via your deployment URL
 
-on:
-  schedule:
-    - cron: "0 * * * *"   # hourly, on the hour (UTC)
-  workflow_dispatch:       # manual run button
+### Manual execution
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install deps (if any)
-        run: |
-          python -m pip install --upgrade pip
-          # pip install -r requirements.txt
-
-      - name: Generate ICS
-        run: |
-          python make_mlp_ics_multi.py
-          printf '<!doctype html><meta charset="utf-8"><title>MLP ICS</title><p><a href="mlp.ics">mlp.ics</a>' > index.html
-
-      - name: Upload artifact for Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-```
-
-### Manually trigger the workflow
-
-* GitHub UI: **Actions → Build ICS hourly → Run workflow**.
-* CLI:
+Run the script directly in Replit:
 
 ```bash
-gh workflow run "Build ICS hourly" --ref main
+python make_mlp_ics_multi.py --debug
 ```
 
 ### Customization
