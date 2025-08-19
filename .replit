@@ -8,7 +8,7 @@ channel = "stable-25_05"
 run = ["sh", "-c", "python make_mlp_ics_multi.py", "--debug"]
 
 [workflows]
-runButton = "Run"
+runButton = "Tests"
 
 [[workflows.workflow]]
 name = "Tests"
