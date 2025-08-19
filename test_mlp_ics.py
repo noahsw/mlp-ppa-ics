@@ -23,51 +23,18 @@ from unittest.mock import patch, MagicMock
 import make_mlp_ics_multi as mlp
 
 
+# Helper function to load sample data from JSON file
+def load_sample_matchups_data():
+    with open('sample_matchups_data.json', 'r') as f:
+        return json.load(f)
+
 # Helper function to create sample data for testing
 def create_sample_data():
+    sample_data = load_sample_matchups_data()
     return {
         "results": {
             "system_matchups": [
-                {
-                    "uuid": "test-uuid-123",
-                    "planned_start_date": "2025-08-16T18:30:00Z",
-                    "planned_end_date": "2025-08-16T19:50:00Z",
-                    "team_one_title": "New York Ninjas",
-                    "team_two_title": "Texas Ranchers",
-                    "team_one_score": 3,
-                    "team_two_score": 0,
-                    "matchup_status": "COMPLETED_MATCHUP_STATUS",
-                    "team_league_title": "Major League Pickleball",
-                    "matchup_group_title": "Premier Season",
-                    "venue": "Test Venue",
-                    "_division_name": "Premier",
-                    "matches": [
-                        {
-                            "match_status": 4,
-                            "match_completed_type": 5,
-                            "team_one_score": 11,
-                            "team_two_score": 9,
-                            "court_title": "GS",
-                            "round_text": "Game 1",
-                            "team_one_player_one_name": "John Doe",
-                            "team_one_player_two_name": "Jane Smith",
-                            "team_two_player_one_name": "Bob Wilson",
-                            "team_two_player_two_name": "Alice Brown"
-                        },
-                        {
-                            "match_status": 4,
-                            "match_completed_type": 5,
-                            "team_one_score": 11,
-                            "team_two_score": 7,
-                            "court_title": "GS",
-                            "round_text": "Game 2",
-                            "team_one_player_one_name": "John Doe",
-                            "team_one_player_two_name": "Jane Smith",
-                            "team_two_player_one_name": "Bob Wilson",
-                            "team_two_player_two_name": "Alice Brown"
-                        }
-                    ]
-                }
+                sample_data["completed_matchup"]
             ]
         }
     }
@@ -150,85 +117,10 @@ class TestMLPICSGenerator(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.sample_completed_matchup = {
-            "uuid": "test-uuid-123",
-            "planned_start_date": "2025-08-16T18:30:00Z",
-            "planned_end_date": "2025-08-16T19:50:00Z",
-            "team_one_title": "Home Team",
-            "team_two_title": "Away Team",
-            "team_one_score": 3,
-            "team_two_score": 0,
-            "matchup_status": "COMPLETED_MATCHUP_STATUS",
-            "team_league_title": "Major League Pickleball",
-            "matchup_group_title": "Premier Season",
-            "venue": "Test Venue",
-            "_division_name": "Premier",
-            "matches": [
-                {
-                    "match_status": 4,
-                    "match_completed_type": 5,
-                    "team_one_score": 11,
-                    "team_two_score": 9,
-                    "court_title": "GS",
-                    "round_text": "Game 1",
-                    "team_one_player_one_name": "John Doe",
-                    "team_one_player_two_name": "Jane Smith",
-                    "team_two_player_one_name": "Bob Wilson",
-                    "team_two_player_two_name": "Alice Brown"
-                },
-                {
-                    "match_status": 4,
-                    "match_completed_type": 5,
-                    "team_one_score": 11,
-                    "team_two_score": 7,
-                    "court_title": "GS",
-                    "round_text": "Game 2",
-                    "team_one_player_one_name": "John Doe",
-                    "team_one_player_two_name": "Jane Smith",
-                    "team_two_player_one_name": "Bob Wilson",
-                    "team_two_player_two_name": "Alice Brown"
-                }
-            ]
-        }
-
-        self.sample_in_progress_matchup = {
-            "uuid": "test-uuid-456",
-            "planned_start_date": "2025-08-17T20:00:00Z",
-            "planned_end_date": "2025-08-17T21:20:00Z",
-            "team_one_title": "Team Alpha",
-            "team_two_title": "Team Beta",
-            "team_one_score": 1,
-            "team_two_score": 0,
-            "matchup_status": "IN_PROGRESS_MATCHUP_STATUS",
-            "team_league_title": "Major League Pickleball",
-            "matchup_group_title": "Challenger Season",
-            "venue": "Test Arena",
-            "_division_name": "Challenger",
-            "matches": [
-                {
-                    "match_status": 4,
-                    "match_completed_type": 5,
-                    "team_one_score": 11,
-                    "team_two_score": 8,
-                    "court_title": "CC",
-                    "round_text": "Game 1"
-                }
-            ]
-        }
-
-        self.sample_upcoming_matchup = {
-            "uuid": "test-uuid-789",
-            "planned_start_date": "2025-08-18T19:00:00Z",
-            "planned_end_date": "2025-08-18T20:20:00Z",
-            "team_one_title": "Future Home",
-            "team_two_title": "Future Away",
-            "matchup_status": "READY_TO_BE_STARTED_STATUS",
-            "team_league_title": "Major League Pickleball",
-            "matchup_group_title": "Premier Season",
-            "venue": "Future Venue",
-            "_division_name": "Premier",
-            "matches": []
-        }
+        sample_data = load_sample_matchups_data()
+        self.sample_completed_matchup = sample_data["completed_matchup"]
+        self.sample_in_progress_matchup = sample_data["in_progress_matchup"]
+        self.sample_upcoming_matchup = sample_data["upcoming_matchup"]
 
     def test_court_label_mapping(self):
         """Test court code to label mapping"""
@@ -278,8 +170,8 @@ class TestMLPICSGenerator(unittest.TestCase):
         """Test player name extraction from matchup"""
         away_players, home_players = mlp.extract_players(self.sample_completed_matchup)
 
-        self.assertEqual(sorted(away_players), ["Alice Brown", "Bob Wilson"])
-        self.assertEqual(sorted(home_players), ["Jane Smith", "John Doe"])
+        self.assertEqual(sorted(away_players), ["Catherine Parenteau", "Jade Kawamoto", "Matt Wright", "Riley Newman"])
+        self.assertEqual(sorted(home_players), ["Anna Leigh Waters", "Ben Johns", "Dylan Frazier", "Meghan Dizon"])
 
     def test_player_name_coalescing(self):
         """Test player name fallback logic"""
@@ -328,23 +220,23 @@ class TestMLPICSGenerator(unittest.TestCase):
         # Check for required ICS fields
         self.assertIn("BEGIN:VEVENT", event_text)
         self.assertIn("END:VEVENT", event_text)
-        self.assertIn("UID:test-uuid-123@mlp", event_text)
-        self.assertIn("SUMMARY:Away Team vs. Home Team", event_text)
+        self.assertIn("UID:sample-completed-123@mlp", event_text)
+        self.assertIn("SUMMARY:Texas Ranchers vs. Miami Pickleball Club", event_text)
 
         # Check for score information in description
-        self.assertIn("FINAL SCORE: Away Team 0 - 3 Home Team", event_text)
-        self.assertIn("Game 1", event_text)
-        self.assertIn("Away Team 9 - 11 Home Team", event_text)
-        self.assertIn("Game 2", event_text)
-        self.assertIn("Away Team 7 - 11 Home Team", event_text)
+        self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", event_text)
+        self.assertIn("Mixed Doubles", event_text)
+        self.assertIn("Texas Ranchers 9 - 11 Miami Pickleball Club", event_text)
+        self.assertIn("Women's Doubles", event_text)
+        self.assertIn("Texas Ranchers 7 - 11 Miami Pickleball Club", event_text)
 
         # Check for player information (accounting for ICS escaping and line folding)
-        self.assertIn("Alice Brown\\; Bob Wilson", event_text)
+        self.assertIn("Catherine Parenteau\\; Matt Wright", event_text)
         # Handle potential line folding in ICS output by checking for the pattern with possible line breaks
         import re
         # The pattern needs to account for line breaks that can occur within names due to ICS line folding
-        jane_john_pattern = r"Ja\s*\n\s*ne Smith\\; John Doe"
-        self.assertRegex(event_text, jane_john_pattern)
+        anna_ben_pattern = r"An\s*\n\s*na Leigh Waters\\; Ben Johns"
+        self.assertRegex(event_text, anna_ben_pattern)
 
     def test_in_progress_matchup_event_generation(self):
         """Test event generation for in-progress matchup"""
@@ -403,7 +295,7 @@ class TestMLPICSGenerator(unittest.TestCase):
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
             self.assertIn("X-WR-CALNAME:MLP Matchups", content)
-            self.assertIn("FINAL SCORE: Away Team 0 - 3 Home Team", content)
+            self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", content)
 
     @patch('make_mlp_ics_multi.fetch_active_events')
     @patch('make_mlp_ics_multi.fetch_json')
@@ -486,7 +378,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         event_text = "\n".join(event_lines)
 
         # Should have overall score but not individual match scores
-        self.assertIn("FINAL SCORE: Away 1 - 2 Home", event_text)
+        self.assertIn("FINAL SCORE: Brooklyn Aces 1 - 2 Utah Black Diamonds", event_text)
         self.assertNotIn("Game 1:", event_text)
 
 
