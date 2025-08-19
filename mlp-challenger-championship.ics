@@ -6,17 +6,14 @@ METHOD:PUBLISH
 X-WR-CALNAME:MLP Matchups
 X-WR-TIMEZONE:America/Los_Angeles
 BEGIN:VEVENT
-UID:5a84c4b7-fdeb-45c4-8738-b7768dabe638@mlp
-DTSTAMP:20250818T015022Z
-DTSTART:20250816T213000Z
-DTEND:20250816T225000Z
-SUMMARY:Bay Area Breakers vs. Las Vegas Night Owls (Championship Court)
-LOCATION:Barnes Tennis Center
-DESCRIPTION:Major League Pickleball — Toray MLP Playoffs - San Diego\nDivis
- ion: Challenger\n\nFINAL SCORE: Bay Area Breakers 0 - 3 Las Vegas Night Owl
- s\n\nPlayers (if listed):\nBay Area Breakers: Alix Truong\; Angie Walker\; 
- Darrian Young\; Jonathan Truong\nLas Vegas Night Owls: Brooke Buckner\; Cha
- o Yi Wang\; James Delgado\; Pablo Tellez
+UID:8a8b75d9-6a44-449a-8a28-13980ccbf80f@mlp
+DTSTAMP:20250819T204729Z
+DTSTART:20250823T180000Z
+DTEND:20250823T192000Z
+SUMMARY:Nashville Chefs vs. Las Vegas Night Owls (Championship Court)
+LOCATION:City Pickle at Wollman Rink
+DESCRIPTION:Major League Pickleball — DoorDash MLP Finals NYC\, powered by 
+ Toray\nDivision: Challenger
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT
