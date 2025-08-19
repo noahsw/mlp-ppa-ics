@@ -163,15 +163,18 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertIn("Texas Ranchers 7 - 11 Miami Pickleball Club", event_text)
 
         # Check for player information (accounting for ICS escaping and line folding)
-        # ICS line folding can split names across lines, so check individual names
-        self.assertIn("Catherine Parenteau", event_text)
-        self.assertIn("Jade Kawamoto", event_text)
-        self.assertIn("Matt Wright", event_text)
-        self.assertIn("Riley Newman", event_text)
-        self.assertIn("Anna Leigh Waters", event_text)
-        self.assertIn("Ben Johns", event_text)
-        self.assertIn("Dylan Frazier", event_text)
-        self.assertIn("Meghan Dizon", event_text)
+        # ICS line folding can split names across lines, so we need to handle this
+        # Remove line folding to get the actual content
+        unfolded_text = event_text.replace("\n ", "")
+        
+        self.assertIn("Catherine Parenteau", unfolded_text)
+        self.assertIn("Jade Kawamoto", unfolded_text)
+        self.assertIn("Matt Wright", unfolded_text)
+        self.assertIn("Riley Newman", unfolded_text)
+        self.assertIn("Anna Leigh Waters", unfolded_text)
+        self.assertIn("Ben Johns", unfolded_text)
+        self.assertIn("Dylan Frazier", unfolded_text)
+        self.assertIn("Meghan Dizon", unfolded_text)
 
     def test_in_progress_matchup_event_generation(self):
         """Test event generation for in-progress matchup"""
