@@ -46,7 +46,10 @@ BASE_ENDPOINT = os.getenv(
     "MLP_BASE_ENDPOINT",
     "https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event"
 )
-SCHEDULE_GROUP_UUID = "141fe139-b4d2-4846-ac9f-a36b5dd6db41"
+EVENTS_ENDPOINT = os.getenv(
+    "MLP_EVENTS_ENDPOINT",
+    "https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/event-matches"
+)
 
 DIVISIONS = {
     "Premier": "5668ed34-5aa6-494d-808f-f5512ae89379",
@@ -69,10 +72,10 @@ UA_LIST = [
      "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"),
 ]
 
-def build_url(selected_date: str, division_uuid: str) -> str:
+def build_url(selected_date: str, division_uuid: str, schedule_group_uuid: str) -> str:
     q = {
         "query_by_schedule_uuid": "true",
-        "schedule_group_uuid": SCHEDULE_GROUP_UUID,
+        "schedule_group_uuid": schedule_group_uuid,
         "division_uuid": division_uuid,
         "selected_date": selected_date,
     }
@@ -97,6 +100,22 @@ def _headers(ua: str) -> Dict[str, str]:
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Dest": "empty",
     }
+
+def fetch_active_events(debug: bool = False) -> List[Dict[str, Any]]:
+    """
+    Fetch all events and return them as a list.
+    """
+    data = fetch_json(EVENTS_ENDPOINT, debug=debug)
+    if not data:
+        if debug:
+            print("Failed to fetch events list")
+        return []
+    
+    events = data.get("all", {}).get("events", [])
+    if debug:
+        print(f"Found {len(events)} total events")
+    
+    return events
 
 def fetch_json(url: str, debug: bool = False, max_attempts: int = 4, base_delay: float = 0.8) -> Optional[Dict[str, Any]]:
     """
@@ -345,6 +364,42 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
         out.extend(fold_ical_line(line))
     return out
 
+def filter_events_by_date_range(events: List[Dict[str, Any]], start_date: datetime, end_date: datetime, debug: bool = False) -> List[Dict[str, Any]]:
+    """
+    Filter events that overlap with our date range (yesterday to today + days).
+    """
+    relevant_events = []
+    
+    for event in events:
+        event_start = event.get("start_date")
+        event_end = event.get("end_date")
+        
+        if not event_start or not event_end:
+            continue
+        
+        try:
+            # Parse event dates (they're in UTC)
+            event_start_dt = datetime.fromisoformat(event_start.replace('Z', '+00:00'))
+            event_end_dt = datetime.fromisoformat(event_end.replace('Z', '+00:00'))
+            
+            # Check if event overlaps with our date range
+            if event_end_dt >= start_date and event_start_dt <= end_date:
+                relevant_events.append(event)
+                if debug:
+                    print(f"Including event: {event.get('title')} ({event_start} to {event_end})")
+            elif debug:
+                print(f"Skipping event: {event.get('title')} ({event_start} to {event_end}) - outside date range")
+                
+        except (ValueError, TypeError) as e:
+            if debug:
+                print(f"Error parsing dates for event {event.get('title', 'Unknown')}: {e}")
+            continue
+    
+    if debug:
+        print(f"Filtered to {len(relevant_events)} relevant events")
+    
+    return relevant_events
+
 def collect_matchups_for_division(division_name: str, division_uuid: str, days: int, tz_name: str, debug: bool = False) -> List[Dict[str, Any]]:
     tz = ZoneInfo(tz_name) if (ZoneInfo and tz_name) else None
     now = datetime.now(tz) if tz else datetime.now()
@@ -353,24 +408,62 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
     if debug:
         print(f"\n== Collecting: {division_name} (yesterday + next {days} day(s), tz={tz_name}) ==")
 
-    dedup: Dict[str, Dict[str, Any]] = {}
-    # Start from yesterday (-1) and go through the specified number of days
-    for i in range(-1, days):
-        day = today_local + timedelta(days=i)
-        url = build_url(day.strftime("%Y-%m-%d"), division_uuid)
-        data = fetch_json(url, debug=debug)
-        if not data:
-            if debug:
-                print(f"[{division_name}] {day} -> no data")
-            continue
-        mm = (data.get("results") or {}).get("system_matchups") or []
+    # Fetch all events first
+    events = fetch_active_events(debug=debug)
+    if not events:
         if debug:
-            print(f"[{division_name}] {day} -> {len(mm)} matchup(s)")
-        for m in mm:
-            uuid = m.get("uuid")
-            if uuid and uuid not in dedup:
-                m["_division_name"] = division_name
-                dedup[uuid] = m
+            print(f"[{division_name}] No events found")
+        return []
+
+    # Calculate our date range (from yesterday to today + days)
+    start_date = datetime.combine(today_local - timedelta(days=1), datetime.min.time())
+    end_date = datetime.combine(today_local + timedelta(days=days-1), datetime.max.time())
+    
+    # Make dates timezone-aware if we have a timezone
+    if tz:
+        start_date = start_date.replace(tzinfo=tz)
+        end_date = end_date.replace(tzinfo=tz)
+    else:
+        # Convert to UTC for comparison with event dates
+        start_date = start_date.replace(tzinfo=timezone.utc)
+        end_date = end_date.replace(tzinfo=timezone.utc)
+
+    # Filter events to those that overlap with our date range
+    relevant_events = filter_events_by_date_range(events, start_date, end_date, debug=debug)
+
+    dedup: Dict[str, Dict[str, Any]] = {}
+    
+    # For each relevant event, fetch matchups for each day in our range
+    for event in relevant_events:
+        schedule_group_uuid = event.get("uuid")
+        event_title = event.get("title", "Unknown Event")
+        
+        if not schedule_group_uuid:
+            if debug:
+                print(f"[{division_name}] Event {event_title} has no UUID, skipping")
+            continue
+        
+        if debug:
+            print(f"[{division_name}] Fetching matchups for event: {event_title}")
+        
+        # Fetch matchups for this event across our date range
+        for i in range(-1, days):
+            day = today_local + timedelta(days=i)
+            url = build_url(day.strftime("%Y-%m-%d"), division_uuid, schedule_group_uuid)
+            data = fetch_json(url, debug=debug)
+            if not data:
+                if debug:
+                    print(f"[{division_name}] {event_title} {day} -> no data")
+                continue
+            mm = (data.get("results") or {}).get("system_matchups") or []
+            if debug and mm:
+                print(f"[{division_name}] {event_title} {day} -> {len(mm)} matchup(s)")
+            for m in mm:
+                uuid = m.get("uuid")
+                if uuid and uuid not in dedup:
+                    m["_division_name"] = division_name
+                    m["_event_title"] = event_title
+                    dedup[uuid] = m
 
     lst = list(dedup.values())
     lst.sort(key=lambda m: m.get("planned_start_date", ""))
@@ -380,8 +473,11 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
             title = make_event_title(m)
             status = m.get("matchup_status", "")
             is_completed = status == "COMPLETED_MATCHUP_STATUS"
+            event_title = m.get("_event_title", "")
 
             debug_line = f"  - {m.get('planned_start_date','?')}  {title}"
+            if event_title:
+                debug_line += f" [{event_title}]"
 
             if is_completed:
                 team_one_score = m.get("team_one_score")
