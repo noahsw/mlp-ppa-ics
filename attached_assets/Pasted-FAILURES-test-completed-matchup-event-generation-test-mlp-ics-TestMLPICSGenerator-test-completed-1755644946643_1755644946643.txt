@@ -1,0 +1,10 @@
+FAILURES:
+- test_completed_matchup_event_generation (test_mlp_ics.TestMLPICSGenerator.test_completed_matchup_event_generation): Traceback (most recent call last):
+  File "/home/runner/workspace/test_mlp_ics.py", line 166, in test_completed_matchup_event_generation
+    self.assertIn("Catherine Parenteau\\; Jade Kawamoto\\; Matt Wright\\; Riley Newman", event_text)
+AssertionError: 'Catherine Parenteau\\; Jade Kawamoto\\; Matt Wright\\; Riley Newman' not found in "BEGIN:VEVENT\nUID:sample-completed-123@mlp\nDTSTAMP:20250101T120000Z\nDTSTART:20250816T183000Z\nDTEND:20250816T195000Z\nSUMMARY:Texas Ranchers vs. Miami Pickleball Club (Grandstand Court)\nLOCATION:Dreamland Courts\nDESCRIPTION:Major League Pickleball — Premier Season\\nDivision: Premier\\n\\n\n FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club\\n\\nIndividual Match\n  Results:\\nMixed Doubles (GS): Texas Ranchers 9 - 11 Miami Pickleball Club\\\n nWomen's Doubles (GS): Texas Ranchers 7 - 11 Miami Pickleball Club\\nMen's D\n oubles (GS): Texas Ranchers 5 - 11 Miami Pickleball Club\\n\\nPlayers (if lis\n ted):\\nTexas Ranchers: Catherine Parenteau\\; Jade Kawamoto\\; Matt Wright\\; \n Riley Newman\\nMiami Pickleball Club: Anna Leigh Waters\\; Ben Johns\\; Dylan \n Frazier\\; Meghan Dizon\nSTATUS:CONFIRMED\nTRANSP:OPAQUE\nEND:VEVENT"
+
+- test_score_detection_logic (test_mlp_ics.TestMLPICSGenerator.test_score_detection_logic): Traceback (most recent call last):
+  File "/home/runner/workspace/test_mlp_ics.py", line 311, in test_score_detection_logic
+    self.assertIn("FINAL SCORE: Brooklyn Aces 1 - 2 Utah Black Diamonds", event_text)
+AssertionError: 'FINAL SCORE: Brooklyn Aces 1 - 2 Utah Black Diamonds' not found in 'BEGIN:VEVENT\nUID:test-incomplete@mlp\nDTSTAMP:20250101T120000Z\nDTSTART:20250816T183000Z\nDTEND:20250816T195000Z\nSUMMARY:Brooklyn Aces vs. Utah Black Diamonds\nLOCATION:\nDESCRIPTION:Division: Premier\\n\\nFINAL SCORE: Brooklyn Aces 1 - 2 Utah Blac\n k Diamonds\nSTATUS:CONFIRMED\nTRANSP:OPAQUE\nEND:VEVENT'
