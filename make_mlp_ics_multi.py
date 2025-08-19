@@ -508,7 +508,8 @@ def write_ics(path: str, matchups: List[Dict[str, Any]], tz_name: str, debug: bo
     for mu in matchups:
         try:
             if debug:
-                print(f"[write:{path}] {make_event_title(mu)}")
+                planned_start = mu.get("planned_start_date", "")
+                print(f"[write:{path}] {planned_start} {make_event_title(mu)}")
             lines.extend(build_event(mu, dtstamp_utc, mu.get("_division_name", "")))
         except KeyError as e:
             print(f"WARN: Skipping matchup missing required field {e}: {mu.get('uuid')}", file=sys.stderr)
