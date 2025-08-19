@@ -39,78 +39,10 @@ def create_sample_data():
         }
     }
 
-# Helper function to create sample events data for testing
-def create_sample_events_data():
-    return {
-        "all": {
-            "events": [
-                {
-                    "uuid": "event-uuid-1",
-                    "start_date": "2025-08-16T18:30:00Z",
-                    "end_date": "2025-08-16T19:50:00Z",
-                    "team_one_title": "New York Ninjas",
-                    "team_two_title": "Texas Ranchers",
-                    "team_one_score": 3,
-                    "team_two_score": 0,
-                    "matchup_status": "COMPLETED_MATCHUP_STATUS",
-                    "league_title": "Major League Pickleball",
-                    "group_title": "Premier Season",
-                    "venue": "Test Venue",
-                    "division_name": "Premier",
-                    "matches": [
-                        {
-                            "match_status": 4,
-                            "match_completed_type": 5,
-                            "team_one_score": 11,
-                            "team_two_score": 9,
-                            "court_title": "GS",
-                            "round_text": "Game 1",
-                            "team_one_player_one_name": "John Doe",
-                            "team_one_player_two_name": "Jane Smith",
-                            "team_two_player_one_name": "Bob Wilson",
-                            "team_two_player_two_name": "Alice Brown"
-                        },
-                        {
-                            "match_status": 4,
-                            "match_completed_type": 5,
-                            "team_one_score": 11,
-                            "team_two_score": 7,
-                            "court_title": "GS",
-                            "round_text": "Game 2",
-                            "team_one_player_one_name": "John Doe",
-                            "team_one_player_two_name": "Jane Smith",
-                            "team_two_player_one_name": "Bob Wilson",
-                            "team_two_player_two_name": "Alice Brown"
-                        }
-                    ]
-                },
-                {
-                    "uuid": "event-uuid-2",
-                    "start_date": "2025-08-17T20:00:00Z",
-                    "end_date": "2025-08-17T21:20:00Z",
-                    "team_one_title": "Team Alpha",
-                    "team_two_title": "Team Beta",
-                    "team_one_score": 1,
-                    "team_two_score": 0,
-                    "matchup_status": "IN_PROGRESS_MATCHUP_STATUS",
-                    "league_title": "Major League Pickleball",
-                    "group_title": "Challenger Season",
-                    "venue": "Test Arena",
-                    "division_name": "Challenger",
-                    "matches": [
-                        {
-                            "match_status": 4,
-                            "match_completed_type": 5,
-                            "team_one_score": 11,
-                            "team_two_score": 8,
-                            "court_title": "CC",
-                            "round_text": "Game 1"
-                        }
-                    ]
-                }
-            ]
-        }
-    }
+# Helper function to load sample events data from JSON file
+def load_sample_events_data():
+    with open('sample_events_data.json', 'r') as f:
+        return json.load(f)
 
 
 class TestMLPICSGenerator(unittest.TestCase):
@@ -301,9 +233,7 @@ class TestMLPICSGenerator(unittest.TestCase):
     @patch('make_mlp_ics_multi.fetch_json')
     def test_division_data_collection(self, mock_fetch_json, mock_fetch_events):
         # Mock the events response
-        with open('sample_events_data.json', 'r') as f:
-            import json
-            events_data = json.load(f)
+        events_data = load_sample_events_data()
         mock_fetch_events.return_value = events_data['all']['events']
 
         # Mock the matchup data response
