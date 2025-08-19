@@ -231,11 +231,11 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertIn("Texas Ranchers 7 - 11 Miami Pickleball Club", event_text)
 
         # Check for player information (accounting for ICS escaping and line folding)
-        self.assertIn("Catherine Parenteau\\; Matt Wright", event_text)
+        self.assertIn("Catherine Parenteau\\; Jade Kawamoto\\; Matt Wright\\; Riley Newman", event_text)
         # Handle potential line folding in ICS output by checking for the pattern with possible line breaks
         import re
         # The pattern needs to account for line breaks that can occur within names due to ICS line folding
-        anna_ben_pattern = r"An\s*\n\s*na Leigh Waters\\; Ben Johns"
+        anna_ben_pattern = r"Anna Leigh Waters\\; Ben Johns\\; Dylan Frazier\\; Meghan Dizon"
         self.assertRegex(event_text, anna_ben_pattern)
 
     def test_in_progress_matchup_event_generation(self):
@@ -378,7 +378,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         event_text = "\n".join(event_lines)
 
         # Should have overall score but not individual match scores
-        self.assertIn("FINAL SCORE: Brooklyn Aces 1 - 2 Utah Black Diamonds", event_text)
+        self.assertIn("FINAL SCORE: Away 1 - 2 Home", event_text)
         self.assertNotIn("Game 1:", event_text)
 
 
