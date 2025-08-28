@@ -470,15 +470,13 @@ class TestPPAICSGenerator(unittest.TestCase):
         finally:
             os.unlink(empty_file)
 
-        # Test the mock scenario that was causing the test to fail
-        with patch('make_ppa_ics.fetch_html', return_value=None):
-            result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--tournament-schedule-url", "https://www.ppatour.com/tournament/2025/test/"
-            ], capture_output=True, text=True)
-            # The script now defaults to schedule URL when fetch fails, so it may not fail
-            # Just check that it handles the fetch failure gracefully
-            self.assertTrue(True)  # If it doesn't crash, the error handling is working
+        # Test with invalid URL that should fail quickly
+        result = subprocess.run([
+            sys.executable, "make_ppa_ics.py",
+            "--tournament-schedule-url", "https://this-domain-does-not-exist-12345.invalid"
+        ], capture_output=True, text=True, timeout=30)
+        # Should fail with network error or similar
+        self.assertNotEqual(result.returncode, 0, "Should fail with invalid domain")
 
     def test_explicit_file_input_modes(self):
         """Test explicit file input scenarios for tour schedule vs tournament schedule"""
