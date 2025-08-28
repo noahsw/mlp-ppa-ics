@@ -426,63 +426,69 @@ class TestPPAICSGenerator(unittest.TestCase):
                 self.assertIn(ppa.ics_escape(expected_summary), ics_content,
                             f"ICS should contain event: {expected_summary}")
 
-    @patch('make_ppa_ics.fetch_html')
-    def test_error_handling(self, mock_fetch):
+    def test_error_handling(self):
         """Test error handling for various failure scenarios"""
-        # Test fetch failure with --schedule-url (now that default behavior uses schedule URL)
-        mock_fetch.return_value = None
+        # Test with invalid URL
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--schedule-url", "https://www.ppatour.com/schedule/"
+            "--tournament-url", "https://invalid-url-that-does-not-exist.com"
         ], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0, "Should fail when fetch returns None")
+        self.assertNotEqual(result.returncode, 0, "Should fail with invalid URL")
 
-        # Test schedule page with no tournament URLs
-        mock_fetch.return_value = '<html><div class="tournament-schedule">No tournaments</div></html>'
+        # Test with non-existent file
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--schedule-url", "https://www.ppatour.com/schedule/"
+            "--tournament-file", "non_existent_file.html"
         ], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0, "Should fail when no tournament URLs found")
+        self.assertNotEqual(result.returncode, 0, "Should fail with non-existent file")
 
-        # Test default behavior with fetch failure
-        mock_fetch.return_value = None
-        result = subprocess.run([
-            sys.executable, "make_ppa_ics.py"
-        ], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0, "Should fail when default fetch returns None")
+        # Test with empty HTML file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as f:
+            f.write("<html><body>No schedule data</body></html>")
+            empty_file = f.name
+
+        try:
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--tournament-file", empty_file
+            ], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0, "Should fail with file containing no events")
+        finally:
+            os.unlink(empty_file)
 
     def test_tournament_schedule_vs_tour_schedule_file_input_modes(self):
         """Test different file input scenarios with tournament schedule vs tour schedule files"""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Copy sample files to temp directory
-            shutil.copy("sample_ppa_tournament_schedule.html", temp_dir)
-            shutil.copy("sample_ppa_tour_schedule.html", temp_dir)
+            tournament_file = os.path.join(temp_dir, "sample_ppa_tournament_schedule.html")
+            tour_file = os.path.join(temp_dir, "sample_ppa_tour_schedule.html")
+            shutil.copy("sample_ppa_tournament_schedule.html", tournament_file)
+            shutil.copy("sample_ppa_tour_schedule.html", tour_file)
 
             # Test with tournament schedule file (specific tournament's how-to-watch page)
             tournament_schedule_output = os.path.join(temp_dir, "tournament_schedule.ics")
             result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--tournament-file", "sample_ppa_tournament_schedule.html",
+                sys.executable, os.path.abspath("make_ppa_ics.py"),
+                "--tournament-file", tournament_file,
                 "--output", tournament_schedule_output
-            ], capture_output=True, text=True, cwd=temp_dir)
-            self.assertEqual(result.returncode, 0, "Should work with tournament schedule file")
+            ], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, f"Should work with tournament schedule file. Error: {result.stderr}")
             self.assertTrue(os.path.exists(tournament_schedule_output))
 
             # Test with tour schedule file (main tournaments listing) - should extract tournament URL but may fail on fetch
             tour_schedule_output = os.path.join(temp_dir, "tour_schedule.ics")
             result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--schedule-file", "sample_ppa_tour_schedule.html",
+                sys.executable, os.path.abspath("make_ppa_ics.py"),
+                "--schedule-file", tour_file,
                 "--output", tour_schedule_output
-            ], capture_output=True, text=True, cwd=temp_dir)
+            ], capture_output=True, text=True)
             # This may fail due to network fetch or no events found, but should at least extract the tournament URL
             if result.returncode != 0:
                 # Check that it failed gracefully with expected error messages
                 error_messages = ["Failed to fetch tournament page", "No events found in the HTML content"]
                 found_expected_error = any(msg in result.stderr for msg in error_messages)
                 self.assertTrue(found_expected_error,
-                              f"Should fail gracefully with expected error. Got: {result.stderr}")
+                              f"Should fail gracefully with expected error. Got stderr: {result.stderr}, stdout: {result.stdout}")
             else:
                 # If it succeeds, verify the output file was created
                 self.assertTrue(os.path.exists(tour_schedule_output))
