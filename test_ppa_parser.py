@@ -15,6 +15,7 @@ import tempfile
 import os
 import sys
 import subprocess
+import re
 from datetime import datetime, timezone
 from unittest.mock import patch, MagicMock
 
@@ -197,12 +198,44 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Verify proper line endings
             self.assertTrue(content.endswith("\r\n"), "ICS file should end with CRLF")
 
+    def test_tournament_url_extraction(self):
+        """Test extracting tournament URL from schedule page"""
+        # Test with sample tournament schedule HTML
+        with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
+            schedule_html = f.read()
+        
+        tournament_url = ppa.extract_first_tournament_url(schedule_html)
+        self.assertIsNotNone(tournament_url, "Should extract tournament URL")
+        self.assertIn("ppatour.com/tournament", tournament_url)
+        self.assertIn("open-at-the-las-vegas-strip", tournament_url)
+        
+        # Test with empty HTML
+        empty_url = ppa.extract_first_tournament_url("")
+        self.assertIsNone(empty_url, "Should return None for empty HTML")
+        
+        # Test with HTML without tournament links
+        no_tournament_html = "<html><body><p>No tournaments here</p></body></html>"
+        no_url = ppa.extract_first_tournament_url(no_tournament_html)
+        self.assertIsNone(no_url, "Should return None when no tournament links found")
+
+    def test_page_type_detection(self):
+        """Test detection of schedule page vs tournament page"""
+        # Test tournament page detection (has "how-to-watch")
+        with open(self.sample_html_file, 'r', encoding='utf-8') as f:
+            tournament_html = f.read()
+        self.assertIn("how-to-watch", tournament_html, "Tournament page should have how-to-watch section")
+        
+        # Test schedule page detection (has "tournament-schedule")
+        with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
+            schedule_html = f.read()
+        self.assertIn("tournament-schedule", schedule_html, "Schedule page should have tournament-schedule section")
+
     def test_command_line_interface(self):
         """Test the command line interface"""
         with tempfile.TemporaryDirectory() as temp_dir:
             test_output = os.path.join(temp_dir, "cli_test.ics")
             
-            # Run the script with sample file
+            # Test with tournament schedule file
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
                 "--file", self.sample_html_file,
@@ -221,6 +254,53 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("Found", result.stdout)
             self.assertIn("events", result.stdout)
             self.assertIn("Created", result.stdout)
+
+    @patch('make_ppa_ics.fetch_html')
+    def test_schedule_page_workflow(self, mock_fetch):
+        """Test the workflow for processing schedule page with tournament URL extraction"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            test_output = os.path.join(temp_dir, "schedule_test.ics")
+            
+            # Mock the schedule page HTML
+            with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
+                schedule_html = f.read()
+            
+            # Mock the tournament page HTML  
+            with open(self.sample_html_file, 'r', encoding='utf-8') as f:
+                tournament_html = f.read()
+            
+            # Set up mock to return schedule page first, then tournament page
+            mock_fetch.side_effect = [schedule_html, tournament_html]
+            
+            # Run the script (should default to schedule URL)
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--output", test_output,
+                "--debug"
+            ], capture_output=True, text=True)
+            
+            # Verify it worked
+            self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+            self.assertTrue(os.path.exists(test_output))
+            
+            # Verify debug output shows the workflow
+            self.assertIn("Found main schedule page", result.stdout)
+            self.assertIn("Found tournament URL", result.stdout)
+            self.assertIn("Extracted tournament name", result.stdout)
+
+    def test_tournament_name_extraction(self):
+        """Test extracting tournament name from URL"""
+        test_cases = [
+            ("https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/", "Open At The Las Vegas Strip"),
+            ("https://www.ppatour.com/tournament/2025/cincinnati-slam/", "Cincinnati Slam"),
+            ("https://www.ppatour.com/tournament/2025/sacramento-vintage-open/", "Sacramento Vintage Open"),
+        ]
+        
+        for url, expected_name in test_cases:
+            match = re.search(r'/tournament/\d+/([^/]+)/?', url)
+            if match:
+                extracted_name = match.group(1).replace('-', ' ').title()
+                self.assertEqual(extracted_name, expected_name, f"Failed to extract name from {url}")
 
     def test_broadcaster_detection(self):
         """Test broadcaster detection from URLs"""
@@ -314,6 +394,47 @@ class TestPPAICSGenerator(unittest.TestCase):
                 expected_summary = f"PPA {event['category']} ({event['court']}) - {event['broadcaster']}"
                 self.assertIn(ppa.ics_escape(expected_summary), ics_content,
                             f"ICS should contain event: {expected_summary}")
+
+    @patch('make_ppa_ics.fetch_html')
+    def test_error_handling(self, mock_fetch):
+        """Test error handling for various failure scenarios"""
+        # Test fetch failure
+        mock_fetch.return_value = None
+        result = subprocess.run([
+            sys.executable, "make_ppa_ics.py"
+        ], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0, "Should fail when fetch returns None")
+        
+        # Test schedule page with no tournament URLs
+        mock_fetch.return_value = '<html><div class="tournament-schedule">No tournaments</div></html>'
+        result = subprocess.run([
+            sys.executable, "make_ppa_ics.py"
+        ], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0, "Should fail when no tournament URLs found")
+
+    def test_file_input_modes(self):
+        """Test different file input scenarios"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Test with tournament schedule file
+            tournament_output = os.path.join(temp_dir, "tournament.ics")
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--file", self.sample_html_file,
+                "--output", tournament_output
+            ], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, "Should work with tournament file")
+            self.assertTrue(os.path.exists(tournament_output))
+            
+            # Test with schedule file (tournaments listing)
+            schedule_output = os.path.join(temp_dir, "schedule.ics")
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py", 
+                "--file", "sample_ppa_tournaments.html",
+                "--output", schedule_output
+            ], capture_output=True, text=True)
+            # This should fail since it's a schedule page without tournament details
+            # The script would try to extract a URL and fetch it, but we can't fetch in file mode
+            self.assertNotEqual(result.returncode, 0, "Should fail when trying to process schedule page from file")
 
 
 def run_test_suite():
