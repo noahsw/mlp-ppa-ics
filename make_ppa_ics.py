@@ -22,6 +22,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from html.parser import HTMLParser
+from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, fold_event_lines
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+
@@ -338,22 +339,7 @@ def parse_time_range(time_str: str,
         return None, None
 
 
-def ics_escape(value: str) -> str:
-    """Escape special characters for ICS format."""
-    return (value.replace("\\", "\\\\").replace(";", "\\;").replace(
-        ",", "\\,").replace("\n", "\\n"))
 
-
-def fold_ical_line(line: str, limit: int = 75) -> List[str]:
-    """Fold long ICS lines according to RFC 5545."""
-    if len(line) <= limit:
-        return [line]
-    parts = [line[:limit]]
-    s = line[limit:]
-    while s:
-        parts.append(" " + s[:limit])
-        s = s[limit:]
-    return parts
 
 
 def create_ics_event(event: Dict[str, Any], tournament_name: str,
@@ -408,11 +394,7 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
     ]
 
     # Fold long lines
-    folded_lines = []
-    for line in event_lines:
-        folded_lines.extend(fold_ical_line(line))
-
-    return folded_lines
+    return fold_event_lines(event_lines)
 
 
 def write_ics_file(filename: str, events: List[Dict[str, Any]],
@@ -420,15 +402,8 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
     """Write events to ICS file."""
     dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
-    lines = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//PPA ICS Generator//EN",
-        "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH",
-        f"X-WR-CALNAME:PPA {tournament_name}",
-        "X-WR-TIMEZONE:America/New_York",
-    ]
+    lines = []
+    lines.extend(get_ics_header(f"PPA {tournament_name}", "America/New_York"))
 
     # Add events
     for event in events:
@@ -436,7 +411,7 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
         if event_lines:
             lines.extend(event_lines)
 
-    lines.append("END:VCALENDAR")
+    lines.extend(get_ics_footer())
 
     # Write file with proper CRLF line endings
     ics_content = "\r\n".join(lines) + "\r\n"

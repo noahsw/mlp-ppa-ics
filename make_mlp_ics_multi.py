@@ -35,6 +35,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
+from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, fold_event_lines
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+
@@ -167,23 +168,7 @@ def fetch_json(url: str, debug: bool = False, max_attempts: int = 4, base_delay:
         print("  xx giving up")
     return None
 
-def ics_escape(value: str) -> str:
-    return (
-        value.replace("\\", "\\\\")
-             .replace(";", "\\;")
-             .replace(",", "\\,")
-             .replace("\n", "\\n")
-    )
 
-def fold_ical_line(line: str, limit: int = 75) -> List[str]:
-    if len(line) <= limit:
-        return [line]
-    parts = [line[:limit]]
-    s = line[limit:]
-    while s:
-        parts.append(" " + s[:limit])
-        s = s[limit:]
-    return parts
 
 def fmt_dt_utc(dt_str: str) -> str:
     # "2025-08-15T17:00:00Z" -> "20250815T170000Z"
@@ -359,10 +344,7 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
         "TRANSP:OPAQUE",
         "END:VEVENT",
     ]
-    out = []
-    for line in event_lines:
-        out.extend(fold_ical_line(line))
-    return out
+    return fold_event_lines(event_lines)
 
 def filter_events_by_date_range(events: List[Dict[str, Any]], start_date: datetime, end_date: datetime, debug: bool = False) -> List[Dict[str, Any]]:
     """
@@ -497,13 +479,7 @@ def collect_matchups_for_division(division_name: str, division_uuid: str, days: 
 def write_ics(path: str, matchups: List[Dict[str, Any]], tz_name: str, debug: bool = False):
     dtstamp_utc = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     lines: List[str] = []
-    lines.append("BEGIN:VCALENDAR")
-    lines.append("VERSION:2.0")
-    lines.append("PRODID:-//MLP ICS Generator//EN")
-    lines.append("CALSCALE:GREGORIAN")
-    lines.append("METHOD:PUBLISH")
-    lines.append("X-WR-CALNAME:MLP Matchups")
-    lines.append(f"X-WR-TIMEZONE:{ics_escape(tz_name)}")
+    lines.extend(get_ics_header("MLP Matchups", tz_name))
 
     for mu in matchups:
         try:
@@ -514,7 +490,7 @@ def write_ics(path: str, matchups: List[Dict[str, Any]], tz_name: str, debug: bo
         except KeyError as e:
             print(f"WARN: Skipping matchup missing required field {e}: {mu.get('uuid')}", file=sys.stderr)
 
-    lines.append("END:VCALENDAR")
+    lines.extend(get_ics_footer())
     ics_text = "\r\n".join(lines) + "\r\n"
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(ics_text)
