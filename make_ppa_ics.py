@@ -388,7 +388,7 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
     dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
     lines = []
-    lines.extend(get_ics_header(f"PPA {tournament_name}", "America/New_York"))
+    lines.extend(get_ics_header("PPA Tour", "America/New_York"))
 
     # Add events
     for event in events:

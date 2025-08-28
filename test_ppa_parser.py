@@ -158,7 +158,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("END:VCALENDAR", content)
             self.assertIn("VERSION:2.0", content)
             self.assertIn("PRODID:-//MLP-PPA ICS Generator//EN", content)
-            self.assertIn(f"X-WR-CALNAME:PPA {self.tournament_name}", content)
+            self.assertIn("X-WR-CALNAME:PPA Tour", content)
 
             # Count events
             event_count = content.count("BEGIN:VEVENT")
@@ -291,7 +291,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             with open(test_output, "r", encoding="utf-8") as f:
                 ics_content = f.read()
 
-            self.assertIn(f"X-WR-CALNAME:PPA {tournament_name}", ics_content)
+            self.assertIn("X-WR-CALNAME:PPA Tour", ics_content)
             self.assertIn("BEGIN:VEVENT", ics_content)
 
     def test_tournament_name_extraction(self):
