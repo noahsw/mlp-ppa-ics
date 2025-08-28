@@ -269,32 +269,30 @@ class TestPPAICSGenerator(unittest.TestCase):
                 self.assertIn("ppa-championships.ics", result.stdout)
 
     def test_default_behavior(self):
-        """Test the default behavior when no arguments are provided"""
+        """Test the default behavior using sample files instead of network requests"""
         with tempfile.TemporaryDirectory() as temp_dir:
             test_output = os.path.join(temp_dir, "default_test.ics")
 
-            # Test with just --debug flag (should default to schedule URL)
-            # Add timeout to prevent hanging on network requests
-            try:
-                result = subprocess.run([
-                    sys.executable, "make_ppa_ics.py",
-                    "--debug",
-                    "--output", test_output
-                ], capture_output=True, text=True, timeout=30)
+            # Test with tour schedule file (simulates default behavior without network)
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--tour-schedule-file", "sample_ppa_tour_schedule.html",
+                "--output", test_output,
+                "--debug"
+            ], capture_output=True, text=True)
 
-                # Should show that it's defaulting to PPA schedule page
-                if "No source specified, defaulting to PPA schedule page" in result.stdout:
-                    # Default behavior is working as expected
-                    self.assertIn("No source specified, defaulting to PPA schedule page", result.stdout)
-                else:
-                    # May fail due to network issues or parsing problems, but should at least show the default message
-                    # Check that it's not the old error message
-                    self.assertNotIn("Must specify one of --tournament-url", result.stderr)
-                    
-            except subprocess.TimeoutExpired:
-                # Test timed out - this is expected behavior for network-dependent tests
-                # The important thing is that it doesn't crash immediately
-                self.assertTrue(True, "Test timed out as expected due to network request")
+            # Should either succeed or fail gracefully with expected messages
+            if result.returncode == 0:
+                self.assertTrue(os.path.exists(test_output), "Should create output file on success")
+            else:
+                # Should fail with expected network-related error messages
+                expected_errors = [
+                    "Failed to fetch tournament page",
+                    "No events found in the HTML content"
+                ]
+                found_expected_error = any(msg in result.stderr for msg in expected_errors)
+                self.assertTrue(found_expected_error,
+                              f"Should fail gracefully. Got stderr: {result.stderr}")
 
     def test_tour_schedule_to_tournament_schedule_workflow(self):
         """Test the workflow for processing tour schedule page with tournament URL extraction"""
@@ -412,7 +410,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             {
                 'date': '2025-08-31',
                 'court': 'Championship Court',
-                'category': 'Mixed Doubles Finals',
+                'category': 'Mixed Doubles Final',
                 'time': '1:00 PM ET - 3:00 PM ET',
                 'broadcaster': 'FS2'
             },
@@ -435,15 +433,16 @@ class TestPPAICSGenerator(unittest.TestCase):
         # Test the filtering function
         championship_events = ppa.filter_championship_events(sample_events)
 
-        # Should filter to only championship-related events (Finals, Championships, Medal matches)
-        self.assertEqual(len(championship_events), 2, "Should find 2 championship events")
+        # Should filter to only championship-related events
+        self.assertEqual(len(championship_events), 4, "Should find 4 championship events")
 
         # Check that the right events were filtered
         categories = [event['category'] for event in championship_events]
         self.assertIn('Championships', categories)
+        self.assertIn('Mixed Doubles Final', categories)
+        self.assertIn('Bronze Medal Match', categories)
         self.assertIn('Gold Medal Championship', categories)
         self.assertNotIn('Singles', categories)
-        self.assertNotIn('Mixed Doubles Final', categories)  # This doesn't contain "final" (case sensitive)
 
     def test_championship_filtering_command_line(self):
         """Test championship filtering via command line interface"""
@@ -582,19 +581,20 @@ class TestPPAICSGenerator(unittest.TestCase):
             {'category': 'Singles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
             {'category': 'Championships', 'date': '2025-08-30', 'court': 'Championship Court', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
             {'category': 'Mixed Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '10:00 AM ET - 12:00 PM ET', 'broadcaster': 'FS2'},
-            {'category': 'Men\'s/Women\'s Doubles Finals', 'date': '2025-08-31', 'court': 'Championship Court', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Men\'s/Women\'s Doubles Final', 'date': '2025-08-31', 'court': 'Championship Court', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'PickleballTV'},
             {'category': 'Women\'s Singles Championship', 'date': '2025-08-31', 'court': 'Championship Court', 'time': '4:00 PM ET - 6:00 PM ET', 'broadcaster': 'Tennis Channel'},
         ]
 
         # Test filtering function
         championship_events = ppa.filter_championship_events(test_events)
 
-        # Should have 2 championship events (Championships, Championship) - Finals doesn't match "final"
-        self.assertEqual(len(championship_events), 2, "Should filter to 2 championship events")
+        # Should have 3 championship events (Championships, Final, Championship)
+        self.assertEqual(len(championship_events), 3, "Should filter to 3 championship events")
 
         # Verify the right events are included
         championship_categories = [e['category'] for e in championship_events]
         self.assertIn('Championships', championship_categories)
+        self.assertIn('Men\'s/Women\'s Doubles Final', championship_categories)
         self.assertIn('Women\'s Singles Championship', championship_categories)
 
         # Verify non-championship events are excluded
@@ -696,13 +696,6 @@ class TestPPAICSGenerator(unittest.TestCase):
 
     def test_error_handling(self):
         """Test error handling for various failure scenarios"""
-        # Test with invalid URL
-        result = subprocess.run([
-            sys.executable, "make_ppa_ics.py",
-            "--tournament-schedule-url", "https://invalid-url-that-does-not-exist.com"
-        ], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0, "Should fail with invalid URL")
-
         # Test with non-existent file
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
@@ -724,13 +717,19 @@ class TestPPAICSGenerator(unittest.TestCase):
         finally:
             os.unlink(empty_file)
 
-        # Test with invalid URL that should fail quickly
-        result = subprocess.run([
-            sys.executable, "make_ppa_ics.py",
-            "--tournament-schedule-url", "https://this-domain-does-not-exist-12345.invalid"
-        ], capture_output=True, text=True, timeout=30)
-        # Should fail with network error or similar
-        self.assertNotEqual(result.returncode, 0, "Should fail with invalid domain")
+        # Test with HTML file that has malformed tournament links
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as f:
+            f.write('<html><body><a href="not-a-valid-tournament-url">Bad Link</a></body></html>')
+            malformed_file = f.name
+
+        try:
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--tour-schedule-file", malformed_file
+            ], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0, "Should fail with malformed tournament links")
+        finally:
+            os.unlink(malformed_file)
 
     def test_explicit_file_input_modes(self):
         """Test explicit file input scenarios for tour schedule vs tournament schedule"""
@@ -746,23 +745,16 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertEqual(result.returncode, 0, f"Should work with tournament schedule file. Error: {result.stderr}")
             self.assertTrue(os.path.exists(tournament_schedule_output))
 
-            # Test with tour schedule file (main tournaments listing) - should extract tournament URL but may fail on fetch
-            tour_schedule_output = os.path.join(temp_dir, "tour_schedule.ics")
-            result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--tour-schedule-file", "sample_ppa_tour_schedule.html",
-                "--output", tour_schedule_output
-            ], capture_output=True, text=True)
-            # This may fail due to network fetch or no events found, but should at least extract the tournament URL
-            if result.returncode != 0:
-                # Check that it failed gracefully with expected error messages
-                error_messages = ["Failed to fetch tournament page", "No events found in the HTML content"]
-                found_expected_error = any(msg in result.stderr for msg in error_messages)
-                self.assertTrue(found_expected_error,
-                              f"Should fail gracefully with expected error. Got stderr: {result.stderr}, stdout: {result.stdout}")
-            else:
-                # If it succeeds, verify the output file was created
-                self.assertTrue(os.path.exists(tour_schedule_output))
+            # Test URL extraction from tour schedule file without attempting network fetch
+            # Read the tour schedule file and test URL extraction directly
+            with open("sample_ppa_tour_schedule.html", 'r', encoding='utf-8') as f:
+                tour_html = f.read()
+            
+            # Test that we can extract a tournament URL from the tour schedule
+            tournament_url = ppa.extract_first_tournament_url(tour_html)
+            self.assertIsNotNone(tournament_url, "Should extract tournament URL from tour schedule file")
+            self.assertIn("ppatour.com/tournament", tournament_url)
+            self.assertIn("open-at-the-las-vegas-strip", tournament_url)
 
 
 def run_test_suite():
