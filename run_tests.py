@@ -11,6 +11,9 @@ import os
 def run_tests():
     """Run all test cases"""
     
+    print("Running All Test Suites...")
+    print("=" * 60)
+    
     # Discover and run tests
     loader = unittest.TestLoader()
     suite = loader.discover('.', pattern='test_*.py')
