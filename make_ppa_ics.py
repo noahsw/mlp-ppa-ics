@@ -353,7 +353,7 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
     if broadcaster:
         description_parts.append(f"Broadcaster: {broadcaster}")
 
-    description = "\\n".join(description_parts)
+    description = "\n".join(description_parts)
 
     # Create unique ID
     date_str = event['date'].replace('-', '')
