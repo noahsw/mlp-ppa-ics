@@ -42,14 +42,36 @@ def fetch_html(url: str) -> Optional[str]:
     }
 
     try:
+        import gzip
         req = Request(url, headers=headers)
         with urlopen(req, timeout=30) as response:
             content = response.read()
+            
+            # Check if content is gzip compressed
+            content_encoding = response.headers.get('Content-Encoding', '').lower()
+            if content_encoding == 'gzip':
+                try:
+                    content = gzip.decompress(content)
+                except Exception as e:
+                    print(f"Failed to decompress gzip content: {e}", file=sys.stderr)
+                    return None
+            elif content_encoding == 'deflate':
+                try:
+                    import zlib
+                    content = zlib.decompress(content)
+                except Exception as e:
+                    print(f"Failed to decompress deflate content: {e}", file=sys.stderr)
+                    return None
+            
             # Handle potential encoding issues
             try:
                 return content.decode('utf-8')
             except UnicodeDecodeError:
-                return content.decode('latin-1')
+                try:
+                    return content.decode('latin-1')
+                except UnicodeDecodeError:
+                    return content.decode('utf-8', errors='replace')
+                    
     except (URLError, HTTPError) as e:
         print(f"Error fetching URL {url}: {e}", file=sys.stderr)
         return None
