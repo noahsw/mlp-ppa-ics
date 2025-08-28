@@ -25,53 +25,18 @@ Use any of these URLs when subscribing (pick one or many):
 
 > **Tip:** The combined feed is the easiest starting point. Add per‑division/court feeds if you want selective alerts.
 
----
-
-## PPA Tournament Calendar Generation
-
-The PPA ICS generator creates calendar files for individual PPA tournaments by scraping tournament schedule pages from the PPA Tour website.
-
-### Usage
-
-```bash
-# Generate calendar from a PPA tournament URL
-python make_ppa_ics.py --tournament-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
-
-# Generate calendar from a local tournament HTML file
-python make_ppa_ics.py --tournament-file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
-
-# Automatically fetch the first tournament from the schedule page
-python make_ppa_ics.py --schedule-url https://www.ppatour.com/schedule/
-
-# Generate from a local schedule HTML file
-python make_ppa_ics.py --schedule-file sample_ppa_tournaments.html
-
-# Use debug mode to see detailed parsing information
-python make_ppa_ics.py --tournament-url [TOURNAMENT_URL] --debug
-```
-
-### PPA Features
-
-- **Automatic Tournament Detection**: Can extract tournament URLs from PPA schedule pages
-- **Complete Schedule Parsing**: Extracts all tournament events with dates, times, courts, and categories
-- **Broadcaster Information**: Identifies streaming platforms (PickleballTV, Tennis Channel, FS1, FS2)
-- **Court-Specific Events**: Separates Championship Court and Grandstand Court events
-- **Category Support**: Handles Singles, Doubles, Mixed Doubles, Championships, and Bronze medal matches
-- **Timezone Conversion**: Converts Eastern Time to UTC for calendar compatibility
-- **ICS Standards Compliance**: Proper line folding and special character escaping
-
-### PPA Calendar Content
-
-Each PPA event includes:
-- **Event Title**: `PPA [Category] ([Court]) - [Broadcaster]`
-- **Description**: Tournament name, category, court, and broadcaster details
-- **Timing**: Accurate start and end times with timezone conversion
-- **Unique IDs**: Prevents duplicate events when importing
 
 ---
+
+## PPA Calendar Subscriptions
+
+Use any of these URLs when subscribing (pick one or many):
+
+- **All:** https://noahsw.github.io/mlp-ppa-ics/ppa.ics
+
 
 ## Subscribe instructions
-These steps are the same for **any** of the MLP URLs above.
+These steps are the same for **any** of the Calendar URLs above.
 
 ### iPhone / iPad (iOS)
 
@@ -171,10 +136,10 @@ Options:
 #### PPA Calendars
 ```bash
 # Generate from tournament URL
-python make_ppa_ics.py --url [TOURNAMENT_URL]
+python make_ppa_ics.py --tournament-url [TOURNAMENT_URL]
 
 # Generate from local file
-python make_ppa_ics.py --file [HTML_FILE] --tournament "[Tournament Name]"
+python make_ppa_ics.py --tournament-file [HTML_FILE] --tournament "[Tournament Name]"
 
 # Auto-fetch from schedule page
 python make_ppa_ics.py --from-schedule
@@ -266,6 +231,7 @@ python make_ppa_ics.py --tournament-url [TOURNAMENT_URL] --debug
 * **Unknown court code**: extend `COURT_MAP` in MLP script.
 * **PPA parsing issues**: Use `--debug` flag to see detailed parsing information.
 * **Tournament not found**: Verify the tournament URL format matches PPA website structure.
+
 
 ### Caveats
 
