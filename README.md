@@ -133,16 +133,11 @@ Options:
 * `--debug` – print verbose debug info (titles, counts, URLs)
 
 #### PPA Calendars
-```bash
-# Generate from tournament URL
-python make_ppa_ics.py --tournament-url [TOURNAMENT_URL]
-
-# Generate from local file
-python make_ppa_ics.py --tournament-file [HTML_FILE] --tournament "[Tournament Name]"
-
-# Auto-fetch from schedule page
-python make_ppa_ics.py --from-schedule
-```
+Usage:
+  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/
+  python make_ppa_ics.py --tournament-schedule-file sample_ppa_tournament_schedule.html --tournament "Open at the Las Vegas Strip"
+  python make_ppa_ics.py --tour-schedule-file sample_ppa_tour_schedule.html
 
 Options:
 * `--output filename.ics` – specify output filename (default: ppa.ics)
