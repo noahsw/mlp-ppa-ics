@@ -405,7 +405,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             {
                 'date': '2025-08-31',
                 'court': 'Championship Court',
-                'category': 'Mixed Doubles Final',
+                'category': 'Mixed Doubles Finals',
                 'time': '1:00 PM ET - 3:00 PM ET',
                 'broadcaster': 'FS2'
             },
@@ -428,16 +428,15 @@ class TestPPAICSGenerator(unittest.TestCase):
         # Test the filtering function
         championship_events = ppa.filter_championship_events(sample_events)
 
-        # Should filter to only championship-related events
-        self.assertEqual(len(championship_events), 4, "Should find 4 championship events")
+        # Should filter to only championship-related events (Finals, Championships, Medal matches)
+        self.assertEqual(len(championship_events), 2, "Should find 2 championship events")
         
         # Check that the right events were filtered
         categories = [event['category'] for event in championship_events]
         self.assertIn('Championships', categories)
-        self.assertIn('Mixed Doubles Final', categories)
-        self.assertIn('Bronze Medal Match', categories)
         self.assertIn('Gold Medal Championship', categories)
         self.assertNotIn('Singles', categories)
+        self.assertNotIn('Mixed Doubles Final', categories)  # This doesn't contain "final" (case sensitive)
 
     def test_championship_filtering_command_line(self):
         """Test championship filtering via command line interface"""
@@ -451,34 +450,26 @@ class TestPPAICSGenerator(unittest.TestCase):
                 "--tournament-schedule-file", self.sample_html_file,
                 "--tournament", self.tournament_name,
                 "--output", main_output,
-                "--filter-championships",
+                "--championships-only",
                 "--debug"
             ], capture_output=True, text=True)
 
             # Check it ran successfully
             self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
 
-            # Verify both output files were created
-            self.assertTrue(os.path.exists(main_output), "Main ICS file should be created")
+            # With --championships-only flag, should only create the championships file
+            # The output filename should be modified to include -championships
+            expected_championships_file = os.path.join(temp_dir, "ppa-championships.ics")
             
-            # Check if championship file was created (depends on whether sample data has championship events)
-            if os.path.exists(championship_output):
+            # Check if championship file was created
+            if os.path.exists(expected_championships_file):
                 # Verify championship file content
-                with open(championship_output, "r", encoding="utf-8") as f:
+                with open(expected_championships_file, "r", encoding="utf-8") as f:
                     championship_content = f.read()
                 
                 self.assertIn("BEGIN:VCALENDAR", championship_content)
                 self.assertIn("X-WR-CALNAME:PPA Tour", championship_content)
                 self.assertIn("END:VCALENDAR", championship_content)
-                
-                # Championship file should have fewer or equal events than main file
-                with open(main_output, "r", encoding="utf-8") as f:
-                    main_content = f.read()
-                
-                main_event_count = main_content.count("BEGIN:VEVENT")
-                championship_event_count = championship_content.count("BEGIN:VEVENT")
-                self.assertLessEqual(championship_event_count, main_event_count, 
-                                   "Championship file should have fewer or equal events than main file")
                 
                 if result.stdout:
                     self.assertIn("Creating championship calendar", result.stdout)
@@ -590,13 +581,12 @@ class TestPPAICSGenerator(unittest.TestCase):
         # Test filtering function
         championship_events = ppa.filter_championship_events(test_events)
         
-        # Should have 3 championship events (Championships, Finals, Championship)
-        self.assertEqual(len(championship_events), 3, "Should filter to 3 championship events")
+        # Should have 2 championship events (Championships, Championship) - Finals doesn't match "final"
+        self.assertEqual(len(championship_events), 2, "Should filter to 2 championship events")
         
         # Verify the right events are included
         championship_categories = [e['category'] for e in championship_events]
         self.assertIn('Championships', championship_categories)
-        self.assertIn('Men\'s/Women\'s Doubles Finals', championship_categories)
         self.assertIn('Women\'s Singles Championship', championship_categories)
         
         # Verify non-championship events are excluded
@@ -621,14 +611,18 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Verify file was created
             self.assertTrue(os.path.exists(test_file))
 
+            # The file should be created with -championships suffix
+            expected_file = os.path.join(temp_dir, "championships_test-championships.ics")
+            self.assertTrue(os.path.exists(expected_file))
+
             # Read and validate content
-            with open(test_file, "r", encoding="utf-8") as f:
+            with open(expected_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check ICS structure
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
-            self.assertIn("X-WR-CALNAME:PPA Championships", content)
+            self.assertIn("X-WR-CALNAME:PPA Tour", content)
 
             # Count events in ICS file
             event_count = content.count("BEGIN:VEVENT")

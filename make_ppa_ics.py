@@ -416,7 +416,9 @@ def filter_championship_events(events: List[Dict[str, Any]]) -> List[Dict[str, A
     """Filter events to include only those categorized as Championships."""
     championship_events = []
     for event in events:
-        if "Championship" in event.get("category", ""):
+        category = event.get("category", "").lower()
+        # Match various championship-related categories
+        if any(keyword in category for keyword in ["championship", "final", "medal"]):
             championship_events.append(event)
     return championship_events
 
@@ -449,6 +451,21 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
         f.write(ics_content.encode("utf-8"))
 
     print(f"Created {filename} with {len(events)} events")
+
+
+def write_both_ics_files(base_filename: str, all_events: List[Dict[str, Any]], tournament_name: str):
+    """Write both main ICS file (all events) and championships ICS file."""
+    # Write main file with all events
+    write_ics_file(base_filename, all_events, tournament_name, championships_only=False)
+    
+    # Write championships file
+    championship_events = filter_championship_events(all_events)
+    if championship_events:
+        base, ext = os.path.splitext(base_filename)
+        championships_filename = f"{base}-championships{ext}"
+        write_ics_file(championships_filename, all_events, tournament_name, championships_only=True)
+    else:
+        print("No championship events found, skipping championships file")
 
 
 def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -679,7 +696,7 @@ def main():
         print("No events found in the HTML content", file=sys.stderr)
         sys.exit(1)
 
-    # Show filtering info if championships only
+    # Handle championships-only flag
     if args.championships_only:
         championship_events = filter_championship_events(events)
         if args.debug:
@@ -687,9 +704,13 @@ def main():
         if not championship_events:
             print("No championship events found in the tournament schedule", file=sys.stderr)
             sys.exit(1)
-
-    # Write ICS file
-    write_ics_file(args.output, events, args.tournament, championships_only=args.championships_only)
+        # Write only championships file
+        write_ics_file(args.output, events, args.tournament, championships_only=True)
+    else:
+        # Default behavior: write both files
+        if args.debug:
+            print(f"Creating both main calendar and championships calendar from {len(events)} total events")
+        write_both_ics_files(args.output, events, args.tournament)
 
 
 if __name__ == "__main__":
