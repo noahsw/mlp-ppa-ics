@@ -58,3 +58,27 @@ def fold_event_lines(event_lines: List[str]) -> List[str]:
     for line in event_lines:
         folded_lines.extend(fold_ical_line(line))
     return folded_lines
+
+
+def format_utc_datetime(dt) -> str:
+    """Format datetime object to UTC ICS format."""
+    from datetime import timezone
+    if hasattr(dt, 'astimezone'):
+        utc_dt = dt.astimezone(timezone.utc)
+    else:
+        utc_dt = dt
+    return utc_dt.strftime("%Y%m%dT%H%M%SZ")
+
+
+def read_html_file(file_path: str, debug: bool = False) -> str:
+    """Read HTML file with proper error handling."""
+    import sys
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        if debug:
+            print(f"Successfully read {len(content)} characters from {file_path}")
+        return content
+    except IOError as e:
+        print(f"Error reading file {file_path}: {e}", file=sys.stderr)
+        raise

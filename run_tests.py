@@ -46,4 +46,4 @@ def run_tests():
 
 
 if __name__ == "__main__":
-    sys.exit(run_tests())s())
+    sys.exit(run_tests())

@@ -35,7 +35,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
-from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, fold_event_lines
+from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, format_utc_datetime, fold_event_lines
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+

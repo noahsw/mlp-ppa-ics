@@ -22,7 +22,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from html.parser import HTMLParser
-from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, fold_event_lines
+from ics_utils import ics_escape, fold_ical_line, get_ics_header, get_ics_footer, fold_event_lines, read_html_file
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+
@@ -142,21 +142,6 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
             return url
 
     return None
-
-
-def parse_tournament_schedule(html_content: str) -> List[Dict[str, Any]]:
-    """Parse tournament page HTML and extract schedule events."""
-    events = []
-
-    # Look for the "how-to-watch" schedule section in the actual PPA website structure
-    schedule_match = re.search(
-        r'<section[^>]*id="how-to-watch"[^>]*>(.*?)</section>', html_content,
-        re.DOTALL)
-    if schedule_match:
-        # Parse actual PPA website structure
-        events = parse_ppa_website_structure(schedule_match.group(1))
-
-    return events
 
 
 def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
@@ -552,10 +537,8 @@ def main():
         if args.debug:
             print(f"Reading tournament content from: {args.tournament_schedule_file}")
         try:
-            with open(args.tournament_schedule_file, 'r', encoding='utf-8') as f:
-                html_content = f.read()
-        except IOError as e:
-            print(f"Error reading file {args.tournament_schedule_file}: {e}", file=sys.stderr)
+            html_content = read_html_file(args.tournament_schedule_file, debug=args.debug)
+        except IOError:
             sys.exit(1)
 
         # Parse tournament schedule from file
@@ -565,10 +548,8 @@ def main():
         if args.debug:
             print(f"Reading schedule content from: {args.tour_schedule_file}")
         try:
-            with open(args.tour_schedule_file, 'r', encoding='utf-8') as f:
-                schedule_html = f.read()
-        except IOError as e:
-            print(f"Error reading file {args.tour_schedule_file}: {e}", file=sys.stderr)
+            schedule_html = read_html_file(args.tour_schedule_file, debug=args.debug)
+        except IOError:
             sys.exit(1)
 
         # Extract tournament URL from schedule file
