@@ -135,8 +135,8 @@ class TestICSUtils(unittest.TestCase):
 
     def test_integration_with_real_ics_content(self):
         """Test integration with realistic ICS content"""
-        # Create a realistic event description
-        description = "Tournament: Open at the Las Vegas Strip\\nCategory: Mixed Doubles\\nCourt: Championship Court\\nBroadcaster: PickleballTV"
+        # Create a realistic event description with comma that needs escaping
+        description = "Tournament: Open at the Las Vegas Strip\nCategory: Mixed Doubles, Championship\nCourt: Championship Court\nBroadcaster: PickleballTV"
         
         # Test escaping
         escaped = ics_utils.ics_escape(description)
