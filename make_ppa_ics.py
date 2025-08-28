@@ -423,6 +423,12 @@ def main():
 
     args = parser.parse_args()
 
+    # Default to schedule URL if no source is specified
+    if not any([args.tournament_url, args.schedule_url, args.tournament_file, args.schedule_file]):
+        args.schedule_url = "https://www.ppatour.com/schedule/"
+        if args.debug:
+            print("No source specified, defaulting to PPA schedule page")
+
     # Get HTML content
     if args.tournament_file:
         if args.debug:
