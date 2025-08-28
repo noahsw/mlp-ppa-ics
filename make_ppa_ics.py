@@ -606,7 +606,7 @@ def main():
             print(f"Found tournament URL in file: {tournament_url}")
         
         # Fetch the tournament page
-        html_content = fetch_html(tournament_url, debug=debug)
+        html_content = fetch_html(tournament_url, debug=args.debug)
         if not html_content:
             print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
             sys.exit(1)
@@ -641,7 +641,7 @@ def main():
         if args.debug:
             print(f"Fetching tournament from: {tournament_url}")
         
-        html_content = fetch_html(tournament_url, debug=debug)
+        html_content = fetch_html(tournament_url, debug=args.debug)
         if not html_content:
             print("Failed to fetch HTML content", file=sys.stderr)
             sys.exit(1)
