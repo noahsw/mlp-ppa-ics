@@ -44,6 +44,8 @@ jobs:
       - name: Generate ICS (with debug)
         run: |
           python make_mlp_ics_multi.py --debug
+          python make_ppa_ics.py --debug
+
           # Minimal index so Pages lists links
           cat > index.html << 'HTML'
           <!doctype html><meta charset="utf-8">
@@ -57,6 +59,7 @@ jobs:
             <li><a href="mlp-challenger.ics">mlp-challenger.ics</a></li>
             <li><a href="mlp-challenger-grandstand.ics">mlp-challenger-grandstand.ics</a></li>
             <li><a href="mlp-challenger-championship.ics">mlp-challenger-championship.ics</a></li>
+          <li><a href="ppa.ics">ppa.ics</a></li>
           </ul>
           HTML
 
