@@ -33,6 +33,7 @@ Use any of these URLs when subscribing (pick one or many):
 
 - **All:** https://noahsw.github.io/mlp-ppa-ics/ppa.ics
 
+- **Championships:** https://noahsw.github.io/mlp-ppa-ics/ppa-championships.ics
 
 ## Subscribe instructions
 These steps are the same for **any** of the Calendar URLs above.
