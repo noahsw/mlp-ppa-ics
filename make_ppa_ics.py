@@ -29,8 +29,11 @@ except ImportError:
     ZoneInfo = None
 
 
-def fetch_html(url: str) -> Optional[str]:
+def fetch_html(url: str, debug: bool = False) -> Optional[str]:
     """Fetch HTML content from URL."""
+    if debug:
+        print(f"Attempting to fetch: {url}")
+    
     headers = {
         'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
@@ -45,35 +48,70 @@ def fetch_html(url: str) -> Optional[str]:
         import gzip
         req = Request(url, headers=headers)
         with urlopen(req, timeout=30) as response:
+            if debug:
+                print(f"HTTP response status: {response.getcode()}")
+                print(f"Response headers: {dict(response.headers)}")
+            
             content = response.read()
+            if debug:
+                print(f"Raw content length: {len(content)} bytes")
             
             # Check if content is gzip compressed
             content_encoding = response.headers.get('Content-Encoding', '').lower()
             if content_encoding == 'gzip':
+                if debug:
+                    print("Content is gzip compressed, decompressing...")
                 try:
                     content = gzip.decompress(content)
+                    if debug:
+                        print(f"Decompressed content length: {len(content)} bytes")
                 except Exception as e:
                     print(f"Failed to decompress gzip content: {e}", file=sys.stderr)
+                    if debug:
+                        print("First 100 bytes of raw content:", content[:100])
                     return None
             elif content_encoding == 'deflate':
+                if debug:
+                    print("Content is deflate compressed, decompressing...")
                 try:
                     import zlib
                     content = zlib.decompress(content)
+                    if debug:
+                        print(f"Decompressed content length: {len(content)} bytes")
                 except Exception as e:
                     print(f"Failed to decompress deflate content: {e}", file=sys.stderr)
+                    if debug:
+                        print("First 100 bytes of raw content:", content[:100])
                     return None
+            elif debug and content_encoding:
+                print(f"Unknown content encoding: {content_encoding}")
             
             # Handle potential encoding issues
             try:
-                return content.decode('utf-8')
+                decoded = content.decode('utf-8')
+                if debug:
+                    print("Successfully decoded as UTF-8")
+                    print(f"Final content length: {len(decoded)} characters")
+                return decoded
             except UnicodeDecodeError:
+                if debug:
+                    print("UTF-8 decoding failed, trying latin-1...")
                 try:
-                    return content.decode('latin-1')
+                    decoded = content.decode('latin-1')
+                    if debug:
+                        print("Successfully decoded as latin-1")
+                    return decoded
                 except UnicodeDecodeError:
+                    if debug:
+                        print("latin-1 decoding failed, using UTF-8 with error replacement...")
                     return content.decode('utf-8', errors='replace')
                     
     except (URLError, HTTPError) as e:
         print(f"Error fetching URL {url}: {e}", file=sys.stderr)
+        if debug:
+            import traceback
+            print("Full error traceback:", file=sys.stderr)
+            traceback.print_exc()
         return None
 
 
@@ -413,35 +451,86 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
     if debug:
         print(f"Fetching schedule from: {schedule_url}")
     
-    schedule_html = fetch_html(schedule_url)
+    schedule_html = fetch_html(schedule_url, debug=debug)
     if not schedule_html:
+        if debug:
+            print("ERROR: Failed to fetch schedule HTML - fetch_html returned None")
         return None, None, None
     
     if debug:
-        print(f"Schedule HTML length: {len(schedule_html)} characters")
-        # Look for any tournament-related content
-        tournament_mentions = re.findall(r'tournament[^>]*>', schedule_html, re.IGNORECASE)
-        if tournament_mentions:
-            print(f"Found {len(tournament_mentions)} tournament-related HTML elements")
-            for i, mention in enumerate(tournament_mentions[:3]):  # Show first 3
-                print(f"  {i+1}: {mention[:100]}...")
+        print(f"Schedule HTML fetched successfully: {len(schedule_html)} characters")
+        
+        # Check if we got valid HTML
+        if schedule_html.startswith('<!DOCTYPE') or schedule_html.startswith('<html'):
+            print("✓ HTML appears to be valid (starts with DOCTYPE or html tag)")
         else:
-            print("No tournament-related HTML elements found")
+            print("⚠ HTML may be invalid or corrupted")
+            print("First 200 characters:", repr(schedule_html[:200]))
+        
+        # Look for any tournament-related content with multiple patterns
+        patterns_to_check = [
+            (r'tournament[^>]*>', 'tournament mentions'),
+            (r'href="[^"]*tournament[^"]*"', 'tournament links'),
+            (r'ppatour\.com/tournament', 'PPA tournament URLs'),
+            (r'class="[^"]*tournament[^"]*"', 'tournament CSS classes'),
+            (r'<a[^>]*href="[^"]*tournament[^"]*"[^>]*>', 'tournament link tags')
+        ]
+        
+        for pattern, description in patterns_to_check:
+            matches = re.findall(pattern, schedule_html, re.IGNORECASE)
+            if matches:
+                print(f"Found {len(matches)} {description}")
+                for i, match in enumerate(matches[:2]):  # Show first 2
+                    print(f"  {i+1}: {match[:100]}...")
+            else:
+                print(f"No {description} found")
     
     tournament_url = extract_first_tournament_url(schedule_html)
     if not tournament_url:
         if debug:
-            print("No tournament URL found in schedule page")
-            # Show some sample HTML to help debug
-            print("Sample HTML content (first 500 chars):")
-            print(schedule_html[:500])
+            print("ERROR: No tournament URL found in schedule page")
+            print("\nDebugging URL extraction:")
+            print("Trying all URL extraction patterns...")
+            
+            # Test each pattern individually for debugging
+            patterns = [
+                r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+                r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+                r'<a\s+href="(/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+                r'href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+                r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
+            ]
+            
+            for i, pattern in enumerate(patterns):
+                matches = re.findall(pattern, schedule_html)
+                if matches:
+                    print(f"  Pattern {i+1}: Found {len(matches)} matches")
+                    for j, match in enumerate(matches[:2]):
+                        print(f"    {j+1}: {match}")
+                else:
+                    print(f"  Pattern {i+1}: No matches")
+            
+            # Show sample HTML around any tournament mentions
+            tournament_indices = [m.start() for m in re.finditer(r'tournament', schedule_html, re.IGNORECASE)]
+            if tournament_indices:
+                print(f"\nSample HTML around tournament mentions (showing first 3 of {len(tournament_indices)}):")
+                for i, idx in enumerate(tournament_indices[:3]):
+                    start = max(0, idx - 100)
+                    end = min(len(schedule_html), idx + 200)
+                    sample = schedule_html[start:end]
+                    print(f"  Context {i+1}: ...{sample}...")
+            else:
+                print("\nNo 'tournament' text found anywhere in HTML")
+                print("Sample HTML content (first 1000 chars):")
+                print(schedule_html[:1000])
+        
         return None, None, None
     
     if debug:
         print(f"Found tournament URL: {tournament_url}")
     
     # Fetch the tournament page
-    tournament_html = fetch_html(tournament_url)
+    tournament_html = fetch_html(tournament_url, debug=debug)
     if not tournament_html:
         if debug:
             print(f"Failed to fetch tournament page: {tournament_url}")
@@ -517,7 +606,7 @@ def main():
             print(f"Found tournament URL in file: {tournament_url}")
         
         # Fetch the tournament page
-        html_content = fetch_html(tournament_url)
+        html_content = fetch_html(tournament_url, debug=debug)
         if not html_content:
             print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
             sys.exit(1)
@@ -552,7 +641,7 @@ def main():
         if args.debug:
             print(f"Fetching tournament from: {tournament_url}")
         
-        html_content = fetch_html(tournament_url)
+        html_content = fetch_html(tournament_url, debug=debug)
         if not html_content:
             print("Failed to fetch HTML content", file=sys.stderr)
             sys.exit(1)
