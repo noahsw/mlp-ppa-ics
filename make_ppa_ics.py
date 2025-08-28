@@ -30,8 +30,8 @@ except ImportError:
     ZoneInfo = None
 
 
-def fetch_html(url: str, debug: bool = False) -> Optional[str]:
-    """Fetch HTML content from URL."""
+def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int = 15) -> Optional[str]:
+    """Fetch HTML content from URL with retries and better error handling."""
     if debug:
         print(f"Attempting to fetch: {url}")
 
@@ -45,75 +45,108 @@ def fetch_html(url: str, debug: bool = False) -> Optional[str]:
         'Connection': 'keep-alive',
     }
 
-    try:
-        import gzip
-        req = Request(url, headers=headers)
-        with urlopen(req, timeout=30) as response:
+    for attempt in range(1, max_retries + 1):
+        try:
+            import gzip
+            import time
+            
+            if debug and attempt > 1:
+                print(f"Retry attempt {attempt}/{max_retries}")
+            
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=timeout) as response:
             if debug:
-                print(f"HTTP response status: {response.getcode()}")
-                print(f"Response headers: {dict(response.headers)}")
+                    print(f"HTTP response status: {response.getcode()}")
+                    print(f"Response headers: {dict(response.headers)}")
 
-            content = response.read()
-            if debug:
-                print(f"Raw content length: {len(content)} bytes")
+                content = response.read()
+                if debug:
+                    print(f"Raw content length: {len(content)} bytes")
 
-            # Check if content is gzip compressed
-            content_encoding = response.headers.get('Content-Encoding', '').lower()
-            if content_encoding == 'gzip':
-                if debug:
-                    print("Content is gzip compressed, decompressing...")
-                try:
-                    content = gzip.decompress(content)
+                # Check if content is gzip compressed
+                content_encoding = response.headers.get('Content-Encoding', '').lower()
+                if content_encoding == 'gzip':
                     if debug:
-                        print(f"Decompressed content length: {len(content)} bytes")
-                except Exception as e:
-                    print(f"Failed to decompress gzip content: {e}", file=sys.stderr)
+                        print("Content is gzip compressed, decompressing...")
+                    try:
+                        content = gzip.decompress(content)
+                        if debug:
+                            print(f"Decompressed content length: {len(content)} bytes")
+                    except Exception as e:
+                        print(f"Failed to decompress gzip content: {e}", file=sys.stderr)
+                        if debug:
+                            print("First 100 bytes of raw content:", content[:100])
+                        continue  # Try next attempt
+                elif content_encoding == 'deflate':
                     if debug:
-                        print("First 100 bytes of raw content:", content[:100])
-                    return None
-            elif content_encoding == 'deflate':
-                if debug:
-                    print("Content is deflate compressed, decompressing...")
-                try:
-                    import zlib
-                    content = zlib.decompress(content)
-                    if debug:
-                        print(f"Decompressed content length: {len(content)} bytes")
-                except Exception as e:
-                    print(f"Failed to decompress deflate content: {e}", file=sys.stderr)
-                    if debug:
-                        print("First 100 bytes of raw content:", content[:100])
-                    return None
-            elif debug and content_encoding:
-                print(f"Unknown content encoding: {content_encoding}")
+                        print("Content is deflate compressed, decompressing...")
+                    try:
+                        import zlib
+                        content = zlib.decompress(content)
+                        if debug:
+                            print(f"Decompressed content length: {len(content)} bytes")
+                    except Exception as e:
+                        print(f"Failed to decompress deflate content: {e}", file=sys.stderr)
+                        if debug:
+                            print("First 100 bytes of raw content:", content[:100])
+                        continue  # Try next attempt
+                elif debug and content_encoding:
+                    print(f"Unknown content encoding: {content_encoding}")
 
-            # Handle potential encoding issues
-            try:
-                decoded = content.decode('utf-8')
-                if debug:
-                    print("Successfully decoded as UTF-8")
-                    print(f"Final content length: {len(decoded)} characters")
-                return decoded
-            except UnicodeDecodeError:
-                if debug:
-                    print("UTF-8 decoding failed, trying latin-1...")
+                # Handle potential encoding issues
                 try:
-                    decoded = content.decode('latin-1')
+                    decoded = content.decode('utf-8')
                     if debug:
-                        print("Successfully decoded as latin-1")
+                        print("Successfully decoded as UTF-8")
+                        print(f"Final content length: {len(decoded)} characters")
                     return decoded
                 except UnicodeDecodeError:
                     if debug:
-                        print("latin-1 decoding failed, using UTF-8 with error replacement...")
-                    return content.decode('utf-8', errors='replace')
+                        print("UTF-8 decoding failed, trying latin-1...")
+                    try:
+                        decoded = content.decode('latin-1')
+                        if debug:
+                            print("Successfully decoded as latin-1")
+                        return decoded
+                    except UnicodeDecodeError:
+                        if debug:
+                            print("latin-1 decoding failed, using UTF-8 with error replacement...")
+                        return content.decode('utf-8', errors='replace')
 
-    except (URLError, HTTPError) as e:
-        print(f"Error fetching URL {url}: {e}", file=sys.stderr)
-        if debug:
-            import traceback
-            print("Full error traceback:", file=sys.stderr)
-            traceback.print_exc()
-        return None
+        except (URLError, HTTPError) as e:
+            error_msg = f"Network error on attempt {attempt}/{max_retries}: {e}"
+            if attempt == max_retries:
+                print(f"Failed to fetch {url} after {max_retries} attempts: {e}", file=sys.stderr)
+            elif debug:
+                print(error_msg)
+            
+            if attempt < max_retries:
+                wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
+                if debug:
+                    print(f"Waiting {wait_time} seconds before retry...")
+                time.sleep(wait_time)
+                continue
+            
+        except Exception as e:
+            error_msg = f"Unexpected error on attempt {attempt}/{max_retries}: {e}"
+            if attempt == max_retries:
+                print(f"Failed to fetch {url} after {max_retries} attempts due to unexpected error: {e}", file=sys.stderr)
+                if debug:
+                    import traceback
+                    print("Full error traceback:", file=sys.stderr)
+                    traceback.print_exc()
+            elif debug:
+                print(error_msg)
+            
+            if attempt < max_retries:
+                wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
+                if debug:
+                    print(f"Waiting {wait_time} seconds before retry...")
+                time.sleep(wait_time)
+                continue
+
+    # All attempts failed
+    return None
 
 
 def extract_first_tournament_url(html_content: str) -> Optional[str]:
@@ -413,8 +446,11 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
 
     schedule_html = fetch_html(schedule_url, debug=debug)
     if not schedule_html:
-        if debug:
-            print("ERROR: Failed to fetch schedule HTML - fetch_html returned None")
+        print(f"Unable to fetch schedule page from {schedule_url}. This may be due to:", file=sys.stderr)
+        print("  - Network connectivity issues", file=sys.stderr)
+        print("  - Website blocking automated requests", file=sys.stderr)
+        print("  - Server timeouts or temporary unavailability", file=sys.stderr)
+        print("  - Try again later or use a local HTML file with --tour-schedule-file", file=sys.stderr)
         return None, None, None
 
     if debug:
@@ -581,7 +617,11 @@ def main():
         html_content, tournament_url, tournament_name = fetch_tournament_from_schedule(schedule_url, args.debug)
 
         if not html_content:
-            print("Failed to fetch tournament from schedule", file=sys.stderr)
+            print("\nFailed to fetch tournament schedule from PPA website.", file=sys.stderr)
+            print("Alternative options:", file=sys.stderr)
+            print("  1. Try again later (the website may be temporarily unavailable)", file=sys.stderr)
+            print("  2. Use a local HTML file: --tour-schedule-file sample_ppa_tour_schedule.html", file=sys.stderr)
+            print("  3. Use a specific tournament URL: --tournament-schedule-url [TOURNAMENT_URL]", file=sys.stderr)
             sys.exit(1)
 
         # Update tournament name if not provided
@@ -599,7 +639,12 @@ def main():
 
         html_content = fetch_html(tournament_url, debug=args.debug)
         if not html_content:
-            print("Failed to fetch HTML content", file=sys.stderr)
+            print(f"\nFailed to fetch tournament page from {tournament_url}", file=sys.stderr)
+            print("This may be due to:", file=sys.stderr)
+            print("  - Invalid or outdated tournament URL", file=sys.stderr)
+            print("  - Network connectivity issues", file=sys.stderr)
+            print("  - Website blocking automated requests", file=sys.stderr)
+            print("  - Try using a local HTML file: --tournament-schedule-file [FILE]", file=sys.stderr)
             sys.exit(1)
 
         events = parse_schedule_content(html_content)
