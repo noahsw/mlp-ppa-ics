@@ -46,4 +46,4 @@ def run_ppa_tests():
 
 
 if __name__ == "__main__":
-    sys.exit(run_ppa_tests())
+    sys.exit(run_ppa_tests())s())

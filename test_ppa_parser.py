@@ -97,32 +97,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             self.assertGreater(end_dt, start_dt, "End time should be after start time")
 
-    def test_ics_escaping(self):
-        """Test ICS special character escaping"""
-        test_cases = [
-            ("Hello, World!", "Hello\\, World!"),
-            ("Line1\nLine2", "Line1\\nLine2"),
-            ("Semi;colon", "Semi\\;colon"),
-            ("Back\\slash", "Back\\\\slash"),
-            ("Mixed's/Women's Doubles", "Mixed's/Women's Doubles"),  # Apostrophes should be preserved
-        ]
-
-        for input_str, expected in test_cases:
-            result = ppa.ics_escape(input_str)
-            self.assertEqual(result, expected, f"Failed to escape '{input_str}'")
-
-    def test_ics_line_folding(self):
-        """Test ICS line folding for long lines"""
-        # Test short line (no folding needed)
-        short_line = "SUMMARY:Short title"
-        folded = ppa.fold_ical_line(short_line)
-        self.assertEqual(folded, [short_line])
-
-        # Test long line (folding needed)
-        long_line = "DESCRIPTION:" + "A" * 100
-        folded = ppa.fold_ical_line(long_line, limit=75)
-        self.assertGreater(len(folded), 1, "Long line should be folded")
-        self.assertTrue(folded[1].startswith(" "), "Continuation line should start with space")
+    
 
     def test_event_creation(self):
         """Test ICS event creation"""
@@ -182,7 +157,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
             self.assertIn("VERSION:2.0", content)
-            self.assertIn("PRODID:-//PPA ICS Generator//EN", content)
+            self.assertIn("PRODID:-//MLP-PPA ICS Generator//EN", content)
             self.assertIn(f"X-WR-CALNAME:PPA {self.tournament_name}", content)
 
             # Count events

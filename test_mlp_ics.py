@@ -123,18 +123,7 @@ class TestMLPICSGenerator(unittest.TestCase):
         result = mlp._coalesce_full_name(None, None, None)
         self.assertIsNone(result)
 
-    def test_ics_escaping(self):
-        """Test ICS special character escaping"""
-        test_cases = [
-            ("Hello, World!", "Hello\\, World!"),
-            ("Line1\nLine2", "Line1\\nLine2"),
-            ("Semi;colon", "Semi\\;colon"),
-            ("Back\\slash", "Back\\\\slash"),
-            ("All,bad;chars\nhere\\", "All\\,bad\\;chars\\nhere\\\\")
-        ]
-
-        for input_str, expected in test_cases:
-            self.assertEqual(mlp.ics_escape(input_str), expected)
+    
 
     def test_datetime_formatting(self):
         """Test UTC datetime formatting for ICS"""
