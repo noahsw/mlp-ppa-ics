@@ -30,8 +30,10 @@ except ImportError:
 def fetch_html(url: str) -> Optional[str]:
     """Fetch HTML content from URL."""
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+        'Accept':
+        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
@@ -56,13 +58,12 @@ def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
     events = []
 
     # Look for the "how-to-watch" schedule section in the actual PPA website structure
-    schedule_match = re.search(r'<section[^>]*id="how-to-watch"[^>]*>(.*?)</section>', html_content, re.DOTALL)
+    schedule_match = re.search(
+        r'<section[^>]*id="how-to-watch"[^>]*>(.*?)</section>', html_content,
+        re.DOTALL)
     if schedule_match:
         # Parse actual PPA website structure
         events = parse_ppa_website_structure(schedule_match.group(1))
-    else:
-        # Fallback: Parse simple HTML structure (like our test files)
-        events = parse_simple_html_structure(html_content)
 
     return events
 
@@ -79,7 +80,8 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
         day_content = day_match.group(1)
 
         # Extract date
-        date_match = re.search(r'<h3[^>]*class="typo-heading--3"[^>]*>([^<]+)</h3>', day_content)
+        date_match = re.search(
+            r'<h3[^>]*class="typo-heading--3"[^>]*>([^<]+)</h3>', day_content)
         if not date_match:
             continue
 
@@ -96,7 +98,9 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
             court_content = court_match.group(1)
 
             # Extract court name
-            court_name_match = re.search(r'<h4[^>]*class="typo-heading--4"[^>]*>([^<]+)</h4>', court_content)
+            court_name_match = re.search(
+                r'<h4[^>]*class="typo-heading--4"[^>]*>([^<]+)</h4>',
+                court_content)
             if not court_name_match:
                 continue
 
@@ -104,34 +108,41 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
 
             # Extract events within this court
             event_pattern = r'<div class="how-to-watch__schedule-event">(.*?)(?=<div class="how-to-watch__schedule-event">|</div>\s*</div>\s*</div>)'
-            event_matches = re.finditer(event_pattern, court_content, re.DOTALL)
+            event_matches = re.finditer(event_pattern, court_content,
+                                        re.DOTALL)
 
             for event_match in event_matches:
                 event_content = event_match.group(1)
 
                 # Extract category and time from event title
-                title_match = re.search(r'<div class="how-to-watch__schedule-event-title">(.*?)</div>', event_content, re.DOTALL)
+                title_match = re.search(
+                    r'<div class="how-to-watch__schedule-event-title">(.*?)</div>',
+                    event_content, re.DOTALL)
                 if not title_match:
                     continue
 
                 title_content = title_match.group(1)
 
                 # Extract category (span content)
-                category_match = re.search(r'<span[^>]*class="typo-heading--4"[^>]*>([^<]+)</span>', title_content)
+                category_match = re.search(
+                    r'<span[^>]*class="typo-heading--4"[^>]*>([^<]+)</span>',
+                    title_content)
                 if not category_match:
                     continue
 
                 category = html.unescape(category_match.group(1)).strip()
 
                 # Extract time (after the pipe)
-                time_match = re.search(r'\|\s*<span>([^<]+)</span>', title_content)
+                time_match = re.search(r'\|\s*<span>([^<]+)</span>',
+                                       title_content)
                 if not time_match:
                     continue
 
                 time_text = html.unescape(time_match.group(1)).strip()
 
                 # Extract broadcaster
-                broadcaster_match = re.search(r'<a[^>]*href="([^"]*)"[^>]*>', event_content)
+                broadcaster_match = re.search(r'<a[^>]*href="([^"]*)"[^>]*>',
+                                              event_content)
                 broadcaster = 'Unknown'
                 if broadcaster_match:
                     href = broadcaster_match.group(1)
@@ -143,69 +154,6 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
                         broadcaster = 'FS1'
                     elif 'foxsports.com/live/fs2' in href:
                         broadcaster = 'FS2'
-
-                event = {
-                    'date': parsed_date,
-                    'court': court_name,
-                    'category': category,
-                    'time': time_text,
-                    'broadcaster': broadcaster
-                }
-                events.append(event)
-
-    return events
-
-
-def parse_simple_html_structure(html_content: str) -> List[Dict[str, Any]]:
-    """Parse simple HTML structure like our test files."""
-    events = []
-
-    # Look for date headers (h2)
-    date_pattern = r'<h2>([^<]+)</h2>(.*?)(?=<h2>|$)'
-    date_matches = re.finditer(date_pattern, html_content, re.DOTALL)
-
-    for date_match in date_matches:
-        date_text = html.unescape(date_match.group(1)).strip()
-        parsed_date = parse_date_text(date_text)
-        if not parsed_date:
-            continue
-
-        day_content = date_match.group(2)
-
-        # Look for court sections (h3)
-        court_pattern = r'<h3>([^<]+)</h3>(.*?)(?=<h3>|$)'
-        court_matches = re.finditer(court_pattern, day_content, re.DOTALL)
-
-        for court_match in court_matches:
-            court_name = html.unescape(court_match.group(1)).strip()
-            court_content = court_match.group(2)
-
-            # Look for events within this court
-            event_pattern = r'<div class="event">(.*?)</div>'
-            event_matches = re.finditer(event_pattern, court_content, re.DOTALL)
-
-            for event_match in event_matches:
-                event_content = event_match.group(1)
-
-                # Extract category
-                category_match = re.search(r'<span class="category">([^<]+)</span>', event_content)
-                if not category_match:
-                    continue
-
-                category = html.unescape(category_match.group(1)).strip()
-
-                # Extract time
-                time_match = re.search(r'<span class="time">([^<]+)</span>', event_content)
-                if not time_match:
-                    continue
-
-                time_text = html.unescape(time_match.group(1)).strip()
-
-                # Extract broadcaster
-                broadcaster_match = re.search(r'<span class="broadcaster">([^<]+)</span>', event_content)
-                broadcaster = 'Unknown'
-                if broadcaster_match:
-                    broadcaster = html.unescape(broadcaster_match.group(1)).strip()
 
                 event = {
                     'date': parsed_date,
@@ -233,10 +181,13 @@ def parse_date_text(date_text: str) -> Optional[str]:
     return None
 
 
-def parse_time_range(time_str: str, event_date: str) -> Tuple[Optional[str], Optional[str]]:
+def parse_time_range(time_str: str,
+                     event_date: str) -> Tuple[Optional[str], Optional[str]]:
     """Parse time range string into UTC datetime strings."""
     # Parse "2:00 PM ET - 10:00 PM ET" format
-    match = re.match(r'(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET', time_str, re.IGNORECASE)
+    match = re.match(
+        r'(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET',
+        time_str, re.IGNORECASE)
     if not match:
         return None, None
 
@@ -247,10 +198,12 @@ def parse_time_range(time_str: str, event_date: str) -> Tuple[Optional[str], Opt
         event_dt = datetime.strptime(event_date, '%Y-%m-%d')
 
         # Parse start time
-        start_dt = datetime.strptime(f"{event_date} {start_time}", '%Y-%m-%d %I:%M %p')
+        start_dt = datetime.strptime(f"{event_date} {start_time}",
+                                     '%Y-%m-%d %I:%M %p')
 
         # Parse end time
-        end_dt = datetime.strptime(f"{event_date} {end_time}", '%Y-%m-%d %I:%M %p')
+        end_dt = datetime.strptime(f"{event_date} {end_time}",
+                                   '%Y-%m-%d %I:%M %p')
 
         # Handle midnight crossover (end time next day)
         if end_dt < start_dt:
@@ -272,7 +225,8 @@ def parse_time_range(time_str: str, event_date: str) -> Tuple[Optional[str], Opt
             start_utc = start_dt.replace(tzinfo=timezone.utc) + est_offset
             end_utc = end_dt.replace(tzinfo=timezone.utc) + est_offset
 
-        return start_utc.strftime('%Y-%m-%dT%H:%M:%SZ'), end_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return start_utc.strftime('%Y-%m-%dT%H:%M:%SZ'), end_utc.strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
 
     except ValueError as e:
         print(f"Error parsing time range '{time_str}': {e}", file=sys.stderr)
@@ -281,12 +235,8 @@ def parse_time_range(time_str: str, event_date: str) -> Tuple[Optional[str], Opt
 
 def ics_escape(value: str) -> str:
     """Escape special characters for ICS format."""
-    return (
-        value.replace("\\", "\\\\")
-             .replace(";", "\\;")
-             .replace(",", "\\,")
-             .replace("\n", "\\n")
-    )
+    return (value.replace("\\", "\\\\").replace(";", "\\;").replace(
+        ",", "\\,").replace("\n", "\\n"))
 
 
 def fold_ical_line(line: str, limit: int = 75) -> List[str]:
@@ -301,7 +251,8 @@ def fold_ical_line(line: str, limit: int = 75) -> List[str]:
     return parts
 
 
-def create_ics_event(event: Dict[str, Any], tournament_name: str, dtstamp: str) -> List[str]:
+def create_ics_event(event: Dict[str, Any], tournament_name: str,
+                     dtstamp: str) -> List[str]:
     """Create ICS event lines for a PPA event."""
     start_time, end_time = parse_time_range(event['time'], event['date'])
     if not start_time or not end_time:
@@ -359,7 +310,8 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str, dtstamp: str) 
     return folded_lines
 
 
-def write_ics_file(filename: str, events: List[Dict[str, Any]], tournament_name: str):
+def write_ics_file(filename: str, events: List[Dict[str, Any]],
+                   tournament_name: str):
     """Write events to ICS file."""
     dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
@@ -390,12 +342,19 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]], tournament_name:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate ICS calendar for PPA tournament schedules")
+    parser = argparse.ArgumentParser(
+        description="Generate ICS calendar for PPA tournament schedules")
     parser.add_argument("--url", help="PPA tournament schedule URL")
     parser.add_argument("--file", help="Local HTML file to parse")
-    parser.add_argument("--tournament", default="Tournament", help="Tournament name")
-    parser.add_argument("--output", default="ppa_schedule.ics", help="Output ICS filename")
-    parser.add_argument("--debug", action="store_true", help="Print debug information")
+    parser.add_argument("--tournament",
+                        default="Tournament",
+                        help="Tournament name")
+    parser.add_argument("--output",
+                        default="ppa.ics",
+                        help="Output ICS filename")
+    parser.add_argument("--debug",
+                        action="store_true",
+                        help="Print debug information")
 
     args = parser.parse_args()
 
@@ -427,7 +386,9 @@ def main():
     if args.debug:
         print(f"Found {len(events)} events:")
         for event in events:
-            print(f"  {event['date']} - {event['court']} - {event['category']} - {event['time']} - {event.get('broadcaster', 'No broadcaster')}")
+            print(
+                f"  {event['date']} - {event['court']} - {event['category']} - {event['time']} - {event.get('broadcaster', 'No broadcaster')}"
+            )
 
     if not events:
         print("No events found in the HTML content", file=sys.stderr)
