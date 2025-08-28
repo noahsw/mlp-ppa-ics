@@ -255,22 +255,22 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("events", result.stdout)
             self.assertIn("Created", result.stdout)
 
-    @patch('make_ppa_ics.fetch_html')
-    def test_schedule_page_workflow(self, mock_fetch):
+    @patch('make_ppa_ics.fetch_tournament_from_schedule')
+    def test_schedule_page_workflow(self, mock_fetch_tournament):
         """Test the workflow for processing schedule page with tournament URL extraction"""
         with tempfile.TemporaryDirectory() as temp_dir:
             test_output = os.path.join(temp_dir, "schedule_test.ics")
-            
-            # Mock the schedule page HTML
-            with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
-                schedule_html = f.read()
             
             # Mock the tournament page HTML  
             with open(self.sample_html_file, 'r', encoding='utf-8') as f:
                 tournament_html = f.read()
             
-            # Set up mock to return schedule page first, then tournament page
-            mock_fetch.side_effect = [schedule_html, tournament_html]
+            # Set up mock to return tournament data
+            mock_fetch_tournament.return_value = (
+                tournament_html, 
+                "https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/",
+                "Open At The Las Vegas Strip"
+            )
             
             # Run the script with explicit --from-schedule flag
             result = subprocess.run([
