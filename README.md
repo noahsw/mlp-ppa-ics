@@ -1,10 +1,11 @@
-# MLP Matchups → iCalendar (ICS)
 
-Generate a live-updating **.ics** calendar of Major League Pickleball matchups that your phone or desktop calendar can subscribe to.
+# MLP & PPA Matchups → iCalendar (ICS)
+
+Generate live-updating **.ics** calendars for both Major League Pickleball (MLP) matchups and Professional Pickleball Association (PPA) tournament schedules that your phone or desktop calendar can subscribe to.
 
 ---
 
-## Subscribe to this calendar
+## MLP Calendar Subscriptions
 
 Use any of these URLs when subscribing (pick one or many):
 
@@ -22,13 +23,52 @@ Use any of these URLs when subscribing (pick one or many):
 
 - **Challenger — Championship Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger-championship.ics
 
-
 > **Tip:** The combined feed is the easiest starting point. Add per‑division/court feeds if you want selective alerts.
 
 ---
 
+## PPA Tournament Calendar Generation
+
+The PPA ICS generator creates calendar files for individual PPA tournaments by scraping tournament schedule pages from the PPA Tour website.
+
+### Usage
+
+```bash
+# Generate calendar from a PPA tournament URL
+python make_ppa_ics.py --url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
+
+# Generate calendar from a local HTML file
+python make_ppa_ics.py --file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
+
+# Automatically fetch the first tournament from the schedule page
+python make_ppa_ics.py --from-schedule --url https://www.ppatour.com/schedule/
+
+# Use debug mode to see detailed parsing information
+python make_ppa_ics.py --url [TOURNAMENT_URL] --debug
+```
+
+### PPA Features
+
+- **Automatic Tournament Detection**: Can extract tournament URLs from PPA schedule pages
+- **Complete Schedule Parsing**: Extracts all tournament events with dates, times, courts, and categories
+- **Broadcaster Information**: Identifies streaming platforms (PickleballTV, Tennis Channel, FS1, FS2)
+- **Court-Specific Events**: Separates Championship Court and Grandstand Court events
+- **Category Support**: Handles Singles, Doubles, Mixed Doubles, Championships, and Bronze medal matches
+- **Timezone Conversion**: Converts Eastern Time to UTC for calendar compatibility
+- **ICS Standards Compliance**: Proper line folding and special character escaping
+
+### PPA Calendar Content
+
+Each PPA event includes:
+- **Event Title**: `PPA [Category] ([Court]) - [Broadcaster]`
+- **Description**: Tournament name, category, court, and broadcaster details
+- **Timing**: Accurate start and end times with timezone conversion
+- **Unique IDs**: Prevents duplicate events when importing
+
+---
+
 ## Subscribe instructions
-These steps are the same for **any** of the URLs above.
+These steps are the same for **any** of the MLP URLs above.
 
 ### iPhone / iPad (iOS)
 
@@ -38,7 +78,7 @@ These steps are the same for **any** of the URLs above.
 
 ### Android (Google Calendar account)
 
-> Google Calendar mobile app doesn’t add URL subscriptions directly. Add it on the web and it will sync to your phone.
+> Google Calendar mobile app doesn't add URL subscriptions directly. Add it on the web and it will sync to your phone.
 
 1. Go to **calendar.google.com** (web) → left sidebar **Other calendars → From URL**.
 2. Paste the URL → **Add calendar**.
@@ -66,6 +106,8 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ## What this repo does
 
+### MLP Calendar Generation
+
 * Fetches active tournaments from: `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/event-matches`
 * Fetches matchups from: `https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event`
 * Pulls data for **yesterday + today + next 4 days** (configurable via `--days`).
@@ -77,6 +119,14 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 * **DESCRIPTION** includes league + event group, **final scores** for completed matches, and **player names** when available.
 * Calendar display name is fixed to **MLP Matchups**.
 
+### PPA Calendar Generation
+
+* Scrapes PPA tournament schedule pages from `ppatour.com`
+* Parses tournament event details including dates, times, courts, categories, and broadcasters
+* Supports both direct tournament URLs and automatic tournament discovery from schedule pages
+* Converts Eastern Time to UTC for proper calendar display
+* Generates ICS files with complete event information and proper formatting
+
 ---
 
 ## Technical details
@@ -85,7 +135,14 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ```
 .
-├─ make_mlp_ics_multi.py           # main script
+├─ make_mlp_ics_multi.py           # MLP calendar generation
+├─ make_ppa_ics.py                 # PPA calendar generation
+├─ run_tests.py                    # Test runner for all tests
+├─ run_ppa_tests.py                # PPA-specific test runner
+├─ test_mlp_ics.py                 # MLP test suite
+├─ test_ppa_parser.py              # PPA test suite
+├─ sample_*.html                   # Sample HTML files for testing
+├─ sample_*.json                   # Sample API responses for testing
 └─ .github/
    └─ workflows/
       └─ build-ics.yml             # GitHub Actions workflow (hourly)
@@ -98,19 +155,35 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ### Running locally
 
+#### MLP Calendars
 ```bash
 python make_mlp_ics_multi.py
 ```
 
 Options:
-
 * `--days 5` – number of days after yesterday (default 5, includes yesterday + today + next 3 days)
 * `--tz America/Los_Angeles` – timezone used to compute "today" (default `America/Los_Angeles`)
 * `--debug` – print verbose debug info (titles, counts, URLs)
 
+#### PPA Calendars
+```bash
+# Generate from tournament URL
+python make_ppa_ics.py --url [TOURNAMENT_URL]
+
+# Generate from local file
+python make_ppa_ics.py --file [HTML_FILE] --tournament "[Tournament Name]"
+
+# Auto-fetch from schedule page
+python make_ppa_ics.py --from-schedule
+```
+
+Options:
+* `--output filename.ics` – specify output filename (default: ppa.ics)
+* `--debug` – print verbose parsing information
+
 ### Testing
 
-The project includes comprehensive test coverage for the ICS generation logic.
+The project includes comprehensive test coverage for both MLP and PPA ICS generation logic.
 
 #### Running tests
 
@@ -118,76 +191,85 @@ The project includes comprehensive test coverage for the ICS generation logic.
 # Run all tests with detailed output
 python run_tests.py
 
-# Run tests using unittest directly
+# Run only PPA tests
+python run_ppa_tests.py
+
+# Run only MLP tests
 python test_mlp_ics.py
 
-# Run with pytest (if available)
-python -m pytest test_mlp_ics.py -v
+# Run tests using unittest directly
+python -m unittest test_mlp_ics.py test_ppa_parser.py -v
 ```
-
-#### Test files
-
-* **`test_mlp_ics.py`** – Main test suite covering:
-  * Completed matchups with scores
-  * In-progress matchups
-  * Upcoming matchups
-  * Court filtering and naming
-  * Player name extraction
-  * ICS formatting and escaping
-  * Edge cases and error handling
-
-* **`test_sample_data.py`** – Generates sample API response data for testing
-
-* **`run_tests.py`** – Test runner with detailed reporting
 
 #### Test coverage includes
 
-* Event title generation with court names
-* Score formatting for completed games (including individual match results)
-* Player name extraction and display
-* ICS special character escaping
-* UTC datetime formatting
-* API response handling
-* Court code mapping
-* Division filtering
-* Dynamic event fetching and date range filtering
+**MLP Tests:**
+* Completed matchups with scores
+* In-progress matchups
+* Upcoming matchups
+* Court filtering and naming
+* Player name extraction
+* ICS formatting and escaping
 * Edge cases and error handling
 
+**PPA Tests:**
+* HTML parsing from tournament pages
+* Date and time range parsing with timezone conversion
+* Event creation and ICS file generation
+* Tournament URL extraction from schedule pages
+* Broadcaster detection
+* Command line interface
+* Error handling and edge cases
+* Full integration testing
 
 ### Automation / Deploy (Replit Deployments)
 
 This project can be deployed on Replit using Deployments for automatic hosting and scheduling:
 
 1. **Deploy on Replit**: Use the Deployments feature to publish your project
-2. **Schedule updates**: Set up a cron job or periodic task to run the script automatically
+2. **Schedule updates**: Set up a cron job or periodic task to run the scripts automatically
 3. **Serve files**: The generated `.ics` files will be accessible via your deployment URL
 
 ### Manual execution
 
-Run the script directly in Replit:
+Run the scripts directly in Replit:
 
 ```bash
+# Generate MLP calendars
 python make_mlp_ics_multi.py --debug
+
+# Generate PPA calendar for a specific tournament
+python make_ppa_ics.py --url [TOURNAMENT_URL] --debug
 ```
 
 ### Customization
 
+#### MLP Customization
 * **Court names**: edit `COURT_MAP` in `make_mlp_ics_multi.py`.
 * **Calendar name**: fixed to `X-WR-CALNAME: MLP Matchups` (change in script if desired).
 * **Days & timezone**: set via `--days` and `--tz`.
 * **Players section**: pulled from per‑match fields; omitted automatically if unavailable.
 
+#### PPA Customization
+* **Tournament parsing**: edit parsing logic in `parse_ppa_website_structure()` function
+* **Broadcaster detection**: extend broadcaster URL patterns in parsing logic
+* **Calendar naming**: modify `X-WR-CALNAME` generation in `write_ics_file()` function
+* **Timezone handling**: adjust Eastern Time conversion logic in `parse_time_range()`
+
 ### Troubleshooting
 
-* **No events**: Check Actions logs. The API can return empty for certain dates.
+* **No events**: Check Actions logs. The APIs can return empty for certain dates.
 * **Calendar not updating**: client caching. Subscribed calendars refresh on their own schedule.
-* **Unknown court code**: extend `COURT_MAP`.
+* **Unknown court code**: extend `COURT_MAP` in MLP script.
+* **PPA parsing issues**: Use `--debug` flag to see detailed parsing information.
+* **Tournament not found**: Verify the tournament URL format matches PPA website structure.
 
 ### Caveats
 
-* Unofficial; upstream API may change.
+* Unofficial; upstream APIs and website structures may change.
 * Minimal error handling by design; warnings print to Action logs.
-* Approx request volume: 1 request/day × 5 days × hourly.
+* MLP: Approx request volume: 1 request/day × 5 days × hourly.
+* PPA: Requires manual generation per tournament; no automatic scheduling yet.
 
 ### License
 
