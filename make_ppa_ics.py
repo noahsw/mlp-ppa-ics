@@ -6,10 +6,10 @@ Scrapes PPA tournament schedule pages and generates ICS calendar files.
 Can work with both live URLs and local HTML files for testing.
 
 Usage:
-  python make_ppa_ics.py --tournament-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
-  python make_ppa_ics.py --schedule-url https://www.ppatour.com/schedule/
-  python make_ppa_ics.py --tournament-file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
-  python make_ppa_ics.py --schedule-file sample_ppa_tournaments.html
+  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/
+  python make_ppa_ics.py --tournament-schedule-file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
+  python make_ppa_ics.py --tour-schedule-file sample_ppa_tournaments.html
 """
 
 import os
@@ -550,10 +550,10 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
 def main():
     parser = argparse.ArgumentParser(
         description="Generate ICS calendar for PPA tournament schedules")
-    parser.add_argument("--tournament-url", help="PPA tournament page URL")
-    parser.add_argument("--schedule-url", help="PPA schedule page URL (automatically finds first tournament)")
-    parser.add_argument("--tournament-file", help="Local tournament schedule HTML file (specific tournament's how-to-watch page)")
-    parser.add_argument("--schedule-file", help="Local tour schedule HTML file (main tournaments listing page)")
+    parser.add_argument("--tournament-schedule-url", help="PPA tournament page URL")
+    parser.add_argument("--tour-schedule-url", help="PPA schedule page URL (automatically finds first tournament)")
+    parser.add_argument("--tournament-schedule-file", help="Local tournament schedule HTML file (specific tournament's how-to-watch page)")
+    parser.add_argument("--tour-schedule-file", help="Local tour schedule HTML file (main tournaments listing page)")
     parser.add_argument("--tournament",
                         default="Tournament",
                         help="Tournament name")
@@ -566,34 +566,34 @@ def main():
 
     args = parser.parse_args()
 
-    # Default to schedule URL if no source is specified
-    if not any([args.tournament_url, args.schedule_url, args.tournament_file, args.schedule_file]):
-        args.schedule_url = "https://www.ppatour.com/schedule/"
+    # Default to tour schedule URL if no source is specified
+    if not any([args.tournament_schedule_url, args.tour_schedule_url, args.tournament_schedule_file, args.tour_schedule_file]):
+        args.tour_schedule_url = "https://www.ppatour.com/schedule/"
         if args.debug:
             print("No source specified, defaulting to PPA schedule page")
 
     # Get HTML content
-    if args.tournament_file:
+    if args.tournament_schedule_file:
         if args.debug:
-            print(f"Reading tournament content from: {args.tournament_file}")
+            print(f"Reading tournament content from: {args.tournament_schedule_file}")
         try:
-            with open(args.tournament_file, 'r', encoding='utf-8') as f:
+            with open(args.tournament_schedule_file, 'r', encoding='utf-8') as f:
                 html_content = f.read()
         except IOError as e:
-            print(f"Error reading file {args.tournament_file}: {e}", file=sys.stderr)
+            print(f"Error reading file {args.tournament_schedule_file}: {e}", file=sys.stderr)
             sys.exit(1)
         
         # Parse tournament schedule from file
         events = parse_tournament_schedule(html_content)
         
-    elif args.schedule_file:
+    elif args.tour_schedule_file:
         if args.debug:
-            print(f"Reading schedule content from: {args.schedule_file}")
+            print(f"Reading schedule content from: {args.tour_schedule_file}")
         try:
-            with open(args.schedule_file, 'r', encoding='utf-8') as f:
+            with open(args.tour_schedule_file, 'r', encoding='utf-8') as f:
                 schedule_html = f.read()
         except IOError as e:
-            print(f"Error reading file {args.schedule_file}: {e}", file=sys.stderr)
+            print(f"Error reading file {args.tour_schedule_file}: {e}", file=sys.stderr)
             sys.exit(1)
         
         # Extract tournament URL from schedule file
@@ -619,9 +619,9 @@ def main():
         
         events = parse_tournament_schedule(html_content)
         
-    elif args.schedule_url:
+    elif args.tour_schedule_url:
         # Fetch tournament from schedule page
-        schedule_url = args.schedule_url
+        schedule_url = args.tour_schedule_url
         html_content, tournament_url, tournament_name = fetch_tournament_from_schedule(schedule_url, args.debug)
         
         if not html_content:
@@ -634,9 +634,9 @@ def main():
         
         events = parse_tournament_schedule(html_content)
         
-    elif args.tournament_url:
+    elif args.tournament_schedule_url:
         # Direct tournament URL
-        tournament_url = args.tournament_url
+        tournament_url = args.tournament_schedule_url
         
         if args.debug:
             print(f"Fetching tournament from: {tournament_url}")
@@ -649,7 +649,7 @@ def main():
         events = parse_tournament_schedule(html_content)
         
     else:
-        print("Error: Must specify one of --tournament-url, --schedule-url, --tournament-file, or --schedule-file", file=sys.stderr)
+        print("Error: Must specify one of --tournament-schedule-url, --tour-schedule-url, --tournament-schedule-file, or --tour-schedule-file", file=sys.stderr)
         sys.exit(1)
 
     if args.debug:

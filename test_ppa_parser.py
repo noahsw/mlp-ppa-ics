@@ -238,7 +238,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Test with tournament schedule file
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--tournament-file", self.sample_html_file,
+                "--tournament-schedule-file", self.sample_html_file,
                 "--tournament", self.tournament_name,
                 "--output", test_output,
                 "--debug"
@@ -431,14 +431,14 @@ class TestPPAICSGenerator(unittest.TestCase):
         # Test with invalid URL
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--tournament-url", "https://invalid-url-that-does-not-exist.com"
+            "--tournament-schedule-url", "https://invalid-url-that-does-not-exist.com"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail with invalid URL")
 
         # Test with non-existent file
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--tournament-file", "non_existent_file.html"
+            "--tournament-schedule-file", "non_existent_file.html"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail with non-existent file")
 
@@ -450,7 +450,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         try:
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--tournament-file", empty_file
+                "--tournament-schedule-file", empty_file
             ], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0, "Should fail with file containing no events")
         finally:
@@ -460,7 +460,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         with patch('make_ppa_ics.fetch_html', return_value=None):
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--tournament-url", "https://www.ppatour.com/tournament/2025/test/"
+                "--tournament-schedule-url", "https://www.ppatour.com/tournament/2025/test/"
             ], capture_output=True, text=True)
             # The script now defaults to schedule URL when fetch fails, so it may not fail
             # Just check that it handles the fetch failure gracefully
@@ -473,7 +473,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             tournament_schedule_output = os.path.join(temp_dir, "tournament_schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--tournament-file", "sample_ppa_tournament_schedule.html",
+                "--tournament-schedule-file", "sample_ppa_tournament_schedule.html",
                 "--tournament", "Open at the Las Vegas Strip",
                 "--output", tournament_schedule_output
             ], capture_output=True, text=True)
@@ -484,7 +484,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             tour_schedule_output = os.path.join(temp_dir, "tour_schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--schedule-file", "sample_ppa_tour_schedule.html",
+                "--tour-schedule-file", "sample_ppa_tour_schedule.html",
                 "--output", tour_schedule_output
             ], capture_output=True, text=True)
             # This may fail due to network fetch or no events found, but should at least extract the tournament URL
