@@ -198,13 +198,13 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Verify proper line endings
             self.assertTrue(content.endswith("\r\n"), "ICS file should end with CRLF")
 
-    def test_tournament_url_extraction(self):
-        """Test extracting tournament URL from schedule page"""
-        # Test with sample tournament schedule HTML
+    def test_tournament_url_extraction_from_tour_schedule(self):
+        """Test extracting tournament URL from main tour schedule page"""
+        # Test with sample tour schedule HTML (the main schedule listing page)
         with open("sample_ppa_tour_schedule.html", 'r', encoding='utf-8') as f:
-            schedule_html = f.read()
+            tour_schedule_html = f.read()
 
-        tournament_url = ppa.extract_first_tournament_url(schedule_html)
+        tournament_url = ppa.extract_first_tournament_url(tour_schedule_html)
         self.assertIsNotNone(tournament_url, "Should extract tournament URL")
         self.assertIn("ppatour.com/tournament", tournament_url)
         self.assertIn("open-at-the-las-vegas-strip", tournament_url)
@@ -218,17 +218,17 @@ class TestPPAICSGenerator(unittest.TestCase):
         no_url = ppa.extract_first_tournament_url(no_tournament_html)
         self.assertIsNone(no_url, "Should return None when no tournament links found")
 
-    def test_page_type_detection(self):
-        """Test detection of schedule page vs tournament page"""
-        # Test tournament page detection (has "how-to-watch")
+    def test_tour_vs_tournament_schedule_page_detection(self):
+        """Test detection of tour schedule page vs tournament schedule page"""
+        # Test tournament schedule page detection (has "how-to-watch")
         with open(self.sample_html_file, 'r', encoding='utf-8') as f:
-            tournament_html = f.read()
-        self.assertIn("how-to-watch", tournament_html, "Tournament page should have how-to-watch section")
+            tournament_schedule_html = f.read()
+        self.assertIn("how-to-watch", tournament_schedule_html, "Tournament schedule page should have how-to-watch section")
 
-        # Test schedule page detection (has "tournament-schedule")
+        # Test tour schedule page detection (has "tournament-schedule")
         with open("sample_ppa_tour_schedule.html", 'r', encoding='utf-8') as f:
-            schedule_html = f.read()
-        self.assertIn("tournament-schedule", schedule_html, "Schedule page should have tournament-schedule section")
+            tour_schedule_html = f.read()
+        self.assertIn("tournament-schedule", tour_schedule_html, "Tour schedule page should have tournament-schedule section")
 
     def test_command_line_interface(self):
         """Test the command line interface"""
@@ -276,21 +276,21 @@ class TestPPAICSGenerator(unittest.TestCase):
                 # Check that it's not the old error message
                 self.assertNotIn("Must specify one of --tournament-url", result.stderr)
 
-    def test_schedule_page_workflow(self):
-        """Test the workflow for processing schedule page with tournament URL extraction"""
+    def test_tour_schedule_to_tournament_schedule_workflow(self):
+        """Test the workflow for processing tour schedule page with tournament URL extraction"""
         # Test the workflow functions directly instead of via subprocess
         # This avoids the mocking issues with subprocess execution
 
         # Read sample HTML files
         with open("sample_ppa_tour_schedule.html", 'r', encoding='utf-8') as f:
-            schedule_html = f.read()
+            tour_schedule_html = f.read()
 
         with open(self.sample_html_file, 'r', encoding='utf-8') as f:
-            tournament_html = f.read()
+            tournament_schedule_html = f.read()
 
         # Test the URL extraction function directly
-        tournament_url = ppa.extract_first_tournament_url(schedule_html)
-        self.assertIsNotNone(tournament_url, "Should extract tournament URL from schedule")
+        tournament_url = ppa.extract_first_tournament_url(tour_schedule_html)
+        self.assertIsNotNone(tournament_url, "Should extract tournament URL from tour schedule")
         self.assertIn("open-at-the-las-vegas-strip", tournament_url)
 
         # Test tournament name extraction from URL
@@ -301,9 +301,9 @@ class TestPPAICSGenerator(unittest.TestCase):
         tournament_name = url_match.group(1).replace('-', ' ').title()
         self.assertEqual(tournament_name, "Open At The Las Vegas Strip")
 
-        # Test parsing the tournament page directly
-        events = ppa.parse_tournament_schedule(tournament_html)
-        self.assertGreater(len(events), 0, "Should parse events from tournament page")
+        # Test parsing the tournament schedule page directly
+        events = ppa.parse_tournament_schedule(tournament_schedule_html)
+        self.assertGreater(len(events), 0, "Should parse events from tournament schedule page")
 
         # Verify the workflow components work together
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -452,29 +452,29 @@ class TestPPAICSGenerator(unittest.TestCase):
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when default fetch returns None")
 
-    def test_file_input_modes(self):
-        """Test different file input scenarios"""
+    def test_tournament_schedule_vs_tour_schedule_file_input_modes(self):
+        """Test different file input scenarios with tournament schedule vs tour schedule files"""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Copy sample files to temp directory
             shutil.copy("sample_ppa_tournament_schedule.html", temp_dir)
             shutil.copy("sample_ppa_tour_schedule.html", temp_dir)
 
-            # Test with tournament schedule file
-            tournament_output = os.path.join(temp_dir, "tournament.ics")
+            # Test with tournament schedule file (specific tournament's how-to-watch page)
+            tournament_schedule_output = os.path.join(temp_dir, "tournament_schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
                 "--tournament-file", "sample_ppa_tournament_schedule.html",
-                "--output", tournament_output
+                "--output", tournament_schedule_output
             ], capture_output=True, text=True, cwd=temp_dir)
-            self.assertEqual(result.returncode, 0, "Should work with tournament file")
-            self.assertTrue(os.path.exists(tournament_output))
+            self.assertEqual(result.returncode, 0, "Should work with tournament schedule file")
+            self.assertTrue(os.path.exists(tournament_schedule_output))
 
-            # Test with schedule file (tournaments listing) - should extract tournament URL but may fail on fetch
-            schedule_output = os.path.join(temp_dir, "schedule.ics")
+            # Test with tour schedule file (main tournaments listing) - should extract tournament URL but may fail on fetch
+            tour_schedule_output = os.path.join(temp_dir, "tour_schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
                 "--schedule-file", "sample_ppa_tour_schedule.html",
-                "--output", schedule_output
+                "--output", tour_schedule_output
             ], capture_output=True, text=True, cwd=temp_dir)
             # This may fail due to network fetch or no events found, but should at least extract the tournament URL
             if result.returncode != 0:
@@ -485,7 +485,7 @@ class TestPPAICSGenerator(unittest.TestCase):
                               f"Should fail gracefully with expected error. Got: {result.stderr}")
             else:
                 # If it succeeds, verify the output file was created
-                self.assertTrue(os.path.exists(schedule_output))
+                self.assertTrue(os.path.exists(tour_schedule_output))
 
 
 def run_test_suite():
