@@ -173,9 +173,9 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Verify file was created
             self.assertTrue(os.path.exists(test_file))
             
-            # Read and verify content
-            with open(test_file, "r", encoding="utf-8") as f:
-                content = f.read()
+            # Read and verify content (use binary mode to preserve CRLF)
+            with open(test_file, "rb") as f:
+                content = f.read().decode("utf-8")
             
             # Check ICS structure
             self.assertIn("BEGIN:VCALENDAR", content)
