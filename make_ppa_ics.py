@@ -49,10 +49,10 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
         try:
             import gzip
             import time
-            
+
             if debug and attempt > 1:
                 print(f"Retry attempt {attempt}/{max_retries}")
-            
+
             req = Request(url, headers=headers)
             with urlopen(req, timeout=timeout) as response:
                 if debug:
@@ -119,14 +119,14 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
                 print(f"Failed to fetch {url} after {max_retries} attempts: {e}", file=sys.stderr)
             elif debug:
                 print(error_msg)
-            
+
             if attempt < max_retries:
                 wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
                 if debug:
                     print(f"Waiting {wait_time} seconds before retry...")
                 time.sleep(wait_time)
                 continue
-            
+
         except Exception as e:
             error_msg = f"Unexpected error on attempt {attempt}/{max_retries}: {e}"
             if attempt == max_retries:
@@ -137,7 +137,7 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
                     traceback.print_exc()
             elif debug:
                 print(error_msg)
-            
+
             if attempt < max_retries:
                 wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
                 if debug:
@@ -357,9 +357,6 @@ def parse_time_range(time_str: str,
         return None, None
 
 
-
-
-
 def create_ics_event(event: Dict[str, Any], tournament_name: str,
                      dtstamp: str) -> List[str]:
     """Create ICS event lines for a PPA event."""
@@ -415,10 +412,25 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
     return fold_event_lines(event_lines)
 
 
+def filter_championship_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter events to include only those categorized as Championships."""
+    championship_events = []
+    for event in events:
+        if "Championship" in event.get("category", ""):
+            championship_events.append(event)
+    return championship_events
+
+
 def write_ics_file(filename: str, events: List[Dict[str, Any]],
-                   tournament_name: str):
+                   tournament_name: str, championships_only: bool = False):
     """Write events to ICS file."""
     dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+    if championships_only:
+        events = filter_championship_events(events)
+        if not filename.endswith("-championships.ics"):
+            base, ext = os.path.splitext(filename)
+            filename = f"{base}-championships{ext}"
 
     lines = []
     lines.extend(get_ics_header("PPA Tour", "America/New_York"))
@@ -556,6 +568,9 @@ def main():
     parser.add_argument("--output",
                         default="ppa.ics",
                         help="Output ICS filename")
+    parser.add_argument("--championships-only",
+                        action="store_true",
+                        help="Filter to only championship events (creates ppa-championships.ics by default)")
     parser.add_argument("--debug",
                         action="store_true",
                         help="Print debug information")
@@ -664,8 +679,17 @@ def main():
         print("No events found in the HTML content", file=sys.stderr)
         sys.exit(1)
 
+    # Show filtering info if championships only
+    if args.championships_only:
+        championship_events = filter_championship_events(events)
+        if args.debug:
+            print(f"Filtering to {len(championship_events)} championship events out of {len(events)} total events")
+        if not championship_events:
+            print("No championship events found in the tournament schedule", file=sys.stderr)
+            sys.exit(1)
+
     # Write ICS file
-    write_ics_file(args.output, events, args.tournament)
+    write_ics_file(args.output, events, args.tournament, championships_only=args.championships_only)
 
 
 if __name__ == "__main__":

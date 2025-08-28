@@ -138,9 +138,11 @@ Usage:
   python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/
   python make_ppa_ics.py --tournament-schedule-file sample_ppa_tournament_schedule.html --tournament "Open at the Las Vegas Strip"
   python make_ppa_ics.py --tour-schedule-file sample_ppa_tour_schedule.html
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/ --championships-only
 
 Options:
-* `--output filename.ics` – specify output filename (default: ppa.ics)
+* `--output filename.ics` – specify output filename (default: ppa.ics, or ppa-championships.ics if --championships-only)
+* `--championships-only` – filter to only championship/finals events (creates ppa-championships.ics by default)
 * `--debug` – print verbose parsing information
 
 ### Testing
