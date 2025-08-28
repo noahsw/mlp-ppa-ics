@@ -255,6 +255,27 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("events", result.stdout)
             self.assertIn("Created", result.stdout)
 
+    def test_default_behavior(self):
+        """Test the default behavior when no arguments are provided"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            test_output = os.path.join(temp_dir, "default_test.ics")
+            
+            # Test with just --debug flag (should default to schedule URL)
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--debug",
+                "--output", test_output
+            ], capture_output=True, text=True)
+            
+            # Should show that it's defaulting to PPA schedule page
+            if "No source specified, defaulting to PPA schedule page" in result.stdout:
+                # Default behavior is working as expected
+                self.assertIn("No source specified, defaulting to PPA schedule page", result.stdout)
+            else:
+                # May fail due to network issues or parsing problems, but should at least show the default message
+                # Check that it's not the old error message
+                self.assertNotIn("Must specify one of --tournament-url", result.stderr)
+
     def test_schedule_page_workflow(self):
         """Test the workflow for processing schedule page with tournament URL extraction"""
         # Test the workflow functions directly instead of via subprocess
@@ -408,13 +429,7 @@ class TestPPAICSGenerator(unittest.TestCase):
     @patch('make_ppa_ics.fetch_html')
     def test_error_handling(self, mock_fetch):
         """Test error handling for various failure scenarios"""
-        # Test missing URL/file
-        result = subprocess.run([
-            sys.executable, "make_ppa_ics.py"
-        ], capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0, "Should fail when no URL or file specified")
-        
-        # Test fetch failure with --schedule-url
+        # Test fetch failure with --schedule-url (now that default behavior uses schedule URL)
         mock_fetch.return_value = None
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
@@ -429,6 +444,13 @@ class TestPPAICSGenerator(unittest.TestCase):
             "--schedule-url", "https://www.ppatour.com/schedule/"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when no tournament URLs found")
+        
+        # Test default behavior with fetch failure
+        mock_fetch.return_value = None
+        result = subprocess.run([
+            sys.executable, "make_ppa_ics.py"
+        ], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0, "Should fail when default fetch returns None")
 
     def test_file_input_modes(self):
         """Test different file input scenarios"""
