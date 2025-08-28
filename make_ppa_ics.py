@@ -57,11 +57,29 @@ def fetch_html(url: str) -> Optional[str]:
 
 def extract_first_tournament_url(html_content: str) -> Optional[str]:
     """Extract the first tournament URL from the schedule page."""
-    # Look for tournament links in the schedule
-    tournament_pattern = r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"'
-    match = re.search(tournament_pattern, html_content)
-    if match:
-        return match.group(1)
+    # Try multiple patterns to find tournament links
+    patterns = [
+        # Original pattern
+        r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+        # Alternative pattern without class requirement
+        r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+        # Pattern for relative URLs
+        r'<a\s+href="(/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+        # Simplified pattern
+        r'href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+        # Pattern for any tournament link structure
+        r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, html_content)
+        if match:
+            url = match.group(1)
+            # Convert relative URLs to absolute
+            if url.startswith('/'):
+                url = 'https://www.ppatour.com' + url
+            return url
+    
     return None
 
 
@@ -377,10 +395,24 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
     if not schedule_html:
         return None, None, None
     
+    if debug:
+        print(f"Schedule HTML length: {len(schedule_html)} characters")
+        # Look for any tournament-related content
+        tournament_mentions = re.findall(r'tournament[^>]*>', schedule_html, re.IGNORECASE)
+        if tournament_mentions:
+            print(f"Found {len(tournament_mentions)} tournament-related HTML elements")
+            for i, mention in enumerate(tournament_mentions[:3]):  # Show first 3
+                print(f"  {i+1}: {mention[:100]}...")
+        else:
+            print("No tournament-related HTML elements found")
+    
     tournament_url = extract_first_tournament_url(schedule_html)
     if not tournament_url:
         if debug:
             print("No tournament URL found in schedule page")
+            # Show some sample HTML to help debug
+            print("Sample HTML content (first 500 chars):")
+            print(schedule_html[:500])
         return None, None, None
     
     if debug:
