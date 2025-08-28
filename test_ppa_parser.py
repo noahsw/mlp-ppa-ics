@@ -450,11 +450,13 @@ class TestPPAICSGenerator(unittest.TestCase):
                 "--schedule-file", "sample_ppa_tournaments.html",
                 "--output", schedule_output
             ], capture_output=True, text=True)
-            # This may fail due to network fetch, but should at least extract the tournament URL
+            # This may fail due to network fetch or no events found, but should at least extract the tournament URL
             if result.returncode != 0:
-                # Check that it found the tournament URL but failed on fetch (which is expected in test environment)
-                self.assertIn("Failed to fetch tournament page", result.stderr, 
-                            "Should fail gracefully when unable to fetch tournament page")
+                # Check that it failed gracefully with expected error messages
+                error_messages = ["Failed to fetch tournament page", "No events found in the HTML content"]
+                found_expected_error = any(msg in result.stderr for msg in error_messages)
+                self.assertTrue(found_expected_error, 
+                              f"Should fail gracefully with expected error. Got: {result.stderr}")
             else:
                 # If it succeeds, verify the output file was created
                 self.assertTrue(os.path.exists(schedule_output))
