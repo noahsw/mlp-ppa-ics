@@ -35,16 +35,19 @@ The PPA ICS generator creates calendar files for individual PPA tournaments by s
 
 ```bash
 # Generate calendar from a PPA tournament URL
-python make_ppa_ics.py --url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
+python make_ppa_ics.py --tournament-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
 
-# Generate calendar from a local HTML file
-python make_ppa_ics.py --file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
+# Generate calendar from a local tournament HTML file
+python make_ppa_ics.py --tournament-file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
 
 # Automatically fetch the first tournament from the schedule page
-python make_ppa_ics.py --from-schedule --url https://www.ppatour.com/schedule/
+python make_ppa_ics.py --schedule-url https://www.ppatour.com/schedule/
+
+# Generate from a local schedule HTML file
+python make_ppa_ics.py --schedule-file sample_ppa_tournaments.html
 
 # Use debug mode to see detailed parsing information
-python make_ppa_ics.py --url [TOURNAMENT_URL] --debug
+python make_ppa_ics.py --tournament-url [TOURNAMENT_URL] --debug
 ```
 
 ### PPA Features
@@ -239,7 +242,7 @@ Run the scripts directly in Replit:
 python make_mlp_ics_multi.py --debug
 
 # Generate PPA calendar for a specific tournament
-python make_ppa_ics.py --url [TOURNAMENT_URL] --debug
+python make_ppa_ics.py --tournament-url [TOURNAMENT_URL] --debug
 ```
 
 ### Customization
