@@ -255,37 +255,48 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIn("events", result.stdout)
             self.assertIn("Created", result.stdout)
 
-    @patch('make_ppa_ics.fetch_html')
-    def test_schedule_page_workflow(self, mock_fetch_html):
+    def test_schedule_page_workflow(self):
         """Test the workflow for processing schedule page with tournament URL extraction"""
+        # Test the workflow functions directly instead of via subprocess
+        # This avoids the mocking issues with subprocess execution
+        
+        # Read sample HTML files
+        with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
+            schedule_html = f.read()
+        
+        with open(self.sample_html_file, 'r', encoding='utf-8') as f:
+            tournament_html = f.read()
+        
+        # Test the URL extraction function directly
+        tournament_url = ppa.extract_first_tournament_url(schedule_html)
+        self.assertIsNotNone(tournament_url, "Should extract tournament URL from schedule")
+        self.assertIn("open-at-the-las-vegas-strip", tournament_url)
+        
+        # Test tournament name extraction from URL
+        import re
+        url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
+        self.assertIsNotNone(url_match, "Should match tournament URL pattern")
+        
+        tournament_name = url_match.group(1).replace('-', ' ').title()
+        self.assertEqual(tournament_name, "Open At The Las Vegas Strip")
+        
+        # Test parsing the tournament page directly
+        events = ppa.parse_tournament_schedule(tournament_html)
+        self.assertGreater(len(events), 0, "Should parse events from tournament page")
+        
+        # Verify the workflow components work together
         with tempfile.TemporaryDirectory() as temp_dir:
-            test_output = os.path.join(temp_dir, "schedule_test.ics")
+            test_output = os.path.join(temp_dir, "workflow_test.ics")
+            ppa.write_ics_file(test_output, events, tournament_name)
             
-            # Read sample HTML files
-            with open("sample_ppa_tournaments.html", 'r', encoding='utf-8') as f:
-                schedule_html = f.read()
+            self.assertTrue(os.path.exists(test_output), "Should create ICS file")
             
-            with open(self.sample_html_file, 'r', encoding='utf-8') as f:
-                tournament_html = f.read()
+            # Verify ICS content
+            with open(test_output, "r", encoding="utf-8") as f:
+                ics_content = f.read()
             
-            # Set up mock to return schedule page first, then tournament page
-            mock_fetch_html.side_effect = [schedule_html, tournament_html]
-            
-            # Run the script with explicit --from-schedule flag
-            result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--from-schedule",
-                "--output", test_output,
-                "--debug"
-            ], capture_output=True, text=True)
-            
-            # Verify it worked
-            self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
-            self.assertTrue(os.path.exists(test_output))
-            
-            # Verify debug output shows the workflow
-            self.assertIn("Found tournament URL", result.stdout)
-            self.assertIn("Extracted tournament name", result.stdout)
+            self.assertIn(f"X-WR-CALNAME:PPA {tournament_name}", ics_content)
+            self.assertIn("BEGIN:VEVENT", ics_content)
 
     def test_tournament_name_extraction(self):
         """Test extracting tournament name from URL"""
