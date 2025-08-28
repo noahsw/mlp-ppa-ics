@@ -308,6 +308,45 @@ class TestPPAICSGenerator(unittest.TestCase):
                 extracted_name = match.group(1).replace('-', ' ').title()
                 self.assertEqual(extracted_name, expected_name, f"Failed to extract name from {url}")
 
+    def test_newline_handling_in_descriptions(self):
+        """Test that event descriptions use actual newlines, not literal \\n characters"""
+        sample_event = {
+            'date': '2025-08-28',
+            'court': 'Championship Court',
+            'category': 'Mixed Doubles',
+            'time': '2:00 PM ET - 10:00 PM ET',
+            'broadcaster': 'PickleballTV'
+        }
+
+        dtstamp = "20250101T120000Z"
+        event_lines = ppa.create_ics_event(sample_event, "Test Tournament", dtstamp)
+        event_text = "\n".join(event_lines)
+
+        # Find the description line (accounting for ICS line folding)
+        description_match = re.search(r'DESCRIPTION:([^\n]+(?:\n [^\n]+)*)', event_text)
+        self.assertIsNotNone(description_match, "Should find DESCRIPTION field in event")
+
+        # Extract the description content and unfold ICS line continuations
+        description_content = description_match.group(1)
+        unfolded_description = description_content.replace('\n ', '')
+
+        # The description should contain actual \\n escape sequences (for ICS format)
+        # but NOT literal backslash-n characters like \\n
+        self.assertIn('\\n', unfolded_description, "Description should contain ICS newline escapes")
+        
+        # When we unescape it, we should get actual newlines
+        unescaped = unfolded_description.replace('\\n', '\n').replace('\\,', ',').replace('\\;', ';').replace('\\\\', '\\')
+        
+        # Should have multiple lines when unescaped
+        description_lines = unescaped.split('\n')
+        self.assertGreater(len(description_lines), 1, "Description should have multiple lines")
+        
+        # Should contain expected content on separate lines
+        self.assertIn("Tournament: Test Tournament", description_lines)
+        self.assertIn("Category: Mixed Doubles", description_lines)
+        self.assertIn("Court: Championship Court", description_lines)
+        self.assertIn("Broadcaster: PickleballTV", description_lines)
+
     def test_broadcaster_detection(self):
         """Test broadcaster detection from URLs"""
         test_cases = [
