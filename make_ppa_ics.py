@@ -8,7 +8,7 @@ Can work with both live URLs and local HTML files for testing.
 
 Usage:
   python make_ppa_ics.py --url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
-  python make_ppa_ics.py --file ppa_schedule_example.html --tournament "Open at the Las Vegas Strip"
+  python make_ppa_ics.py --file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
 """
 
 import os
@@ -35,92 +35,112 @@ class PPAScheduleParser(HTMLParser):
         self.events = []
         self.current_date = None
         self.current_court = None
-        self.current_event = {}
-        self.in_date_header = False
-        self.in_court_header = False
-        self.in_category = False
-        self.in_time = False
-        self.in_broadcaster = False
+        self.current_category = None
+        self.current_time = None
+        self.current_broadcaster = None
+        self.in_day_title = False
+        self.in_court_title = False
+        self.in_event_title = False
+        self.in_broadcaster_link = False
         self.text_buffer = ""
+        self.depth = 0
         
     def handle_starttag(self, tag, attrs):
-        # Look for date headers (h2, h3, or div with date-like text)
-        if tag in ['h2', 'h3']:
-            self.in_date_header = True
+        self.depth += 1
+        attrs_dict = dict(attrs)
+        class_attr = attrs_dict.get('class', '')
+        
+        # Look for day titles (h3 with date)
+        if tag == 'h3' and 'typo-heading--3' in class_attr:
+            self.in_day_title = True
             self.text_buffer = ""
-        elif tag == 'div':
-            class_attr = dict(attrs).get('class', '')
-            if 'court' in class_attr.lower():
-                self.in_court_header = True
-                self.text_buffer = ""
-        elif tag == 'span':
-            class_attr = dict(attrs).get('class', '')
-            if 'category' in class_attr:
-                self.in_category = True
-                self.text_buffer = ""
-            elif 'time' in class_attr:
-                self.in_time = True
-                self.text_buffer = ""
-            elif 'broadcaster' in class_attr:
-                self.in_broadcaster = True
-                self.text_buffer = ""
+        # Look for court titles (h4)
+        elif tag == 'h4' and 'typo-heading--4' in class_attr:
+            self.in_court_title = True
+            self.text_buffer = ""
+        # Look for event title divs
+        elif tag == 'div' and 'how-to-watch__schedule-event-title' in class_attr:
+            self.in_event_title = True
+            self.current_category = None
+            self.current_time = None
+        # Look for broadcaster links
+        elif tag == 'a' and 'how-to-watch__schedule-platform' in class_attr:
+            self.in_broadcaster_link = True
+            href = attrs_dict.get('href', '')
+            if 'pickleballtv.com' in href:
+                self.current_broadcaster = 'PickleballTV'
+            elif 'tennischannel.com' in href:
+                self.current_broadcaster = 'Tennis Channel'
+            elif 'foxsports.com/live/fs1' in href:
+                self.current_broadcaster = 'FS1'
+            elif 'foxsports.com/live/fs2' in href:
+                self.current_broadcaster = 'FS2'
+            else:
+                self.current_broadcaster = 'Unknown'
                 
     def handle_endtag(self, tag):
-        if tag in ['h2', 'h3'] and self.in_date_header:
-            self.in_date_header = False
+        self.depth -= 1
+        
+        if tag == 'h3' and self.in_day_title:
+            self.in_day_title = False
             date_text = self.text_buffer.strip()
-            if self._is_date_header(date_text):
-                self.current_date = self._parse_date(date_text)
-                self.current_court = None
-        elif tag == 'div' and self.in_court_header:
-            self.in_court_header = False
-            court_text = self.text_buffer.strip()
-            if self._is_court_header(court_text):
-                self.current_court = court_text
-        elif tag == 'span':
-            if self.in_category:
-                self.in_category = False
-                self.current_event['category'] = self.text_buffer.strip()
-            elif self.in_time:
-                self.in_time = False
-                self.current_event['time'] = self.text_buffer.strip()
-            elif self.in_broadcaster:
-                self.in_broadcaster = False
-                self.current_event['broadcaster'] = self.text_buffer.strip()
-                # End of event, save it
-                if self.current_date and self.current_court:
-                    self.current_event['date'] = self.current_date
-                    self.current_event['court'] = self.current_court
-                    self.events.append(self.current_event.copy())
-                self.current_event = {}
+            self.current_date = self._parse_date(date_text)
+            
+        elif tag == 'h4' and self.in_court_title:
+            self.in_court_title = False
+            self.current_court = self.text_buffer.strip()
+            
+        elif tag == 'div' and self.in_event_title:
+            self.in_event_title = False
+            # Parse the event title text for category and time
+            event_text = self.text_buffer.strip()
+            self._parse_event_text(event_text)
+            
+        elif tag == 'a' and self.in_broadcaster_link:
+            self.in_broadcaster_link = False
+            # Save the complete event
+            if all([self.current_date, self.current_court, self.current_category, 
+                   self.current_time, self.current_broadcaster]):
+                event = {
+                    'date': self.current_date,
+                    'court': self.current_court,
+                    'category': self.current_category,
+                    'time': self.current_time,
+                    'broadcaster': self.current_broadcaster
+                }
+                self.events.append(event)
                 
     def handle_data(self, data):
-        if self.in_date_header or self.in_court_header or self.in_category or self.in_time or self.in_broadcaster:
+        if self.in_day_title or self.in_court_title or self.in_event_title:
             self.text_buffer += data
             
-    def _is_date_header(self, text: str) -> bool:
-        """Check if text looks like a date header."""
-        date_patterns = [
-            r'(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)',
-            r'(January|February|March|April|May|June|July|August|September|October|November|December)',
-            r'\d{1,2}'
-        ]
-        return any(re.search(pattern, text, re.IGNORECASE) for pattern in date_patterns)
+    def _parse_event_text(self, text: str):
+        """Parse event text like 'Singles | 2:00 PM ET - 10:00 PM ET'."""
+        # Handle HTML entities
+        text = html.unescape(text)
         
-    def _is_court_header(self, text: str) -> bool:
-        """Check if text looks like a court header."""
-        return 'court' in text.lower()
+        # Split by pipe
+        parts = text.split('|')
+        if len(parts) >= 2:
+            self.current_category = parts[0].strip()
+            self.current_time = parts[1].strip()
+        else:
+            # Fallback: try to extract category and time separately
+            category_match = re.search(r'(Singles|Mixed\s+Doubles|Men\'?s/Women\'?s\s+Doubles|Championships?|Bronze)', text, re.IGNORECASE)
+            time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET\s*-\s*\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET)', text, re.IGNORECASE)
+            
+            if category_match:
+                self.current_category = category_match.group(1)
+            if time_match:
+                self.current_time = time_match.group(1)
         
     def _parse_date(self, date_text: str) -> Optional[str]:
-        """Parse date text into a standardized format."""
-        # Handle formats like "Thursday, August 28", "Friday, August 29", etc.
+        """Parse date text into YYYY-MM-DD format."""
         match = re.search(r'(\w+),?\s+(\w+)\s+(\d+)', date_text)
         if match:
             weekday, month, day = match.groups()
-            # For now, assume current year (could be enhanced to extract year from page)
             year = datetime.now().year
             try:
-                # Convert month name to number
                 month_num = datetime.strptime(month, '%B').month
                 return f"{year}-{month_num:02d}-{int(day):02d}"
             except ValueError:
@@ -161,54 +181,96 @@ def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
     if parser.events:
         return parser.events
     
-    # Fallback: Simple regex-based parsing
+    # Fallback: Enhanced regex-based parsing for the PPA website structure
     events = []
     
-    # Extract date sections
-    date_pattern = r'<h[2-3][^>]*>([^<]*(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[^<]*)</h[2-3]>'
-    court_pattern = r'<h[3-4][^>]*>([^<]*[Cc]ourt[^<]*)</h[3-4]>'
+    # Look for the "how-to-watch" schedule section
+    schedule_match = re.search(r'<section[^>]*id="how-to-watch"[^>]*>.*?</section>', html_content, re.DOTALL)
+    if not schedule_match:
+        print("Could not find how-to-watch section", file=sys.stderr)
+        return events
     
-    # Look for patterns in the HTML
-    lines = html_content.split('\n')
-    current_date = None
-    current_court = None
+    schedule_html = schedule_match.group(0)
     
-    for line in lines:
-        line = line.strip()
+    # Extract day sections
+    day_pattern = r'<div class="how-to-watch__schedule-day">(.*?)</div>\s*</div>\s*</div>'
+    day_matches = re.finditer(day_pattern, schedule_html, re.DOTALL)
+    
+    for day_match in day_matches:
+        day_content = day_match.group(1)
         
-        # Check for date headers
-        date_match = re.search(date_pattern, line, re.IGNORECASE)
-        if date_match:
-            date_text = html.unescape(date_match.group(1)).strip()
-            current_date = parse_date_text(date_text)
+        # Extract date
+        date_match = re.search(r'<h3[^>]*class="typo-heading--3"[^>]*>([^<]+)</h3>', day_content)
+        if not date_match:
             continue
-            
-        # Check for court headers
-        court_match = re.search(court_pattern, line, re.IGNORECASE)
-        if court_match:
-            current_court = html.unescape(court_match.group(1)).strip()
+        
+        date_text = html.unescape(date_match.group(1)).strip()
+        parsed_date = parse_date_text(date_text)
+        if not parsed_date:
             continue
+        
+        # Extract courts within this day
+        court_pattern = r'<div class="how-to-watch__schedule-court">(.*?)(?=<div class="how-to-watch__schedule-court">|$)'
+        court_matches = re.finditer(court_pattern, day_content, re.DOTALL)
+        
+        for court_match in court_matches:
+            court_content = court_match.group(1)
             
-        # Look for event information in text content
-        if current_date and current_court:
-            # Simple pattern matching for events
-            time_pattern = r'(\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET)\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET)'
-            time_match = re.search(time_pattern, line, re.IGNORECASE)
+            # Extract court name
+            court_name_match = re.search(r'<h4[^>]*class="typo-heading--4"[^>]*>([^<]+)</h4>', court_content)
+            if not court_name_match:
+                continue
             
-            if time_match:
-                # Extract category and broadcaster from surrounding text
-                category_pattern = r'(Singles|Doubles|Mixed\s+Doubles|Men\'?s/Women\'?s\s+Doubles|Championships?|Bronze)'
-                broadcaster_pattern = r'(PickleballTV|Tennis\s+Channel|FS[12]|ESPN)'
+            court_name = html.unescape(court_name_match.group(1)).strip()
+            
+            # Extract events within this court
+            event_pattern = r'<div class="how-to-watch__schedule-event">(.*?)</div>\s*</div>'
+            event_matches = re.finditer(event_pattern, court_content, re.DOTALL)
+            
+            for event_match in event_matches:
+                event_content = event_match.group(1)
                 
-                category_match = re.search(category_pattern, line, re.IGNORECASE)
-                broadcaster_match = re.search(broadcaster_pattern, line, re.IGNORECASE)
+                # Extract category and time
+                title_match = re.search(r'<div class="how-to-watch__schedule-event-title">(.*?)</div>', event_content, re.DOTALL)
+                if not title_match:
+                    continue
+                
+                title_content = title_match.group(1)
+                
+                # Extract category (span content)
+                category_match = re.search(r'<span[^>]*class="typo-heading--4"[^>]*>([^<]+)</span>', title_content)
+                if not category_match:
+                    continue
+                
+                category = html.unescape(category_match.group(1)).strip()
+                
+                # Extract time (after the pipe)
+                time_match = re.search(r'\|\s*<span>([^<]+)</span>', title_content)
+                if not time_match:
+                    continue
+                
+                time_text = html.unescape(time_match.group(1)).strip()
+                
+                # Extract broadcaster
+                broadcaster_match = re.search(r'<a[^>]*href="([^"]*)"[^>]*>', event_content)
+                broadcaster = 'Unknown'
+                if broadcaster_match:
+                    href = broadcaster_match.group(1)
+                    if 'pickleballtv.com' in href:
+                        broadcaster = 'PickleballTV'
+                    elif 'tennischannel.com' in href:
+                        broadcaster = 'Tennis Channel'
+                    elif 'foxsports.com/live/fs1' in href:
+                        broadcaster = 'FS1'
+                    elif 'foxsports.com/live/fs2' in href:
+                        broadcaster = 'FS2'
                 
                 event = {
-                    'date': current_date,
-                    'court': current_court,
-                    'category': category_match.group(1) if category_match else 'Tournament',
-                    'time': f"{time_match.group(1)} - {time_match.group(2)}",
-                    'broadcaster': broadcaster_match.group(1) if broadcaster_match else ''
+                    'date': parsed_date,
+                    'court': court_name,
+                    'category': category,
+                    'time': time_text,
+                    'broadcaster': broadcaster
                 }
                 events.append(event)
     

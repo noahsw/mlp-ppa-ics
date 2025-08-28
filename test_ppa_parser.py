@@ -15,7 +15,7 @@ def main():
     try:
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--file", "ppa_schedule_example.html",
+            "--file", "sample_ppa_schedule.html",
             "--tournament", "Open at the Las Vegas Strip",
             "--output", "test_ppa_schedule.ics",
             "--debug"
