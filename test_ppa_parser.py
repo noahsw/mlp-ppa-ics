@@ -238,7 +238,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Test with tournament schedule file
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--file", self.sample_html_file,
+                "--tournament-file", self.sample_html_file,
                 "--tournament", self.tournament_name,
                 "--output", test_output,
                 "--debug"
@@ -414,11 +414,11 @@ class TestPPAICSGenerator(unittest.TestCase):
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when no URL or file specified")
         
-        # Test fetch failure with --from-schedule
+        # Test fetch failure with --schedule-url
         mock_fetch.return_value = None
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--from-schedule"
+            "--schedule-url", "https://www.ppatour.com/schedule/"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when fetch returns None")
         
@@ -426,7 +426,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         mock_fetch.return_value = '<html><div class="tournament-schedule">No tournaments</div></html>'
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py",
-            "--from-schedule"
+            "--schedule-url", "https://www.ppatour.com/schedule/"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when no tournament URLs found")
 
@@ -437,21 +437,21 @@ class TestPPAICSGenerator(unittest.TestCase):
             tournament_output = os.path.join(temp_dir, "tournament.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
-                "--file", self.sample_html_file,
+                "--tournament-file", self.sample_html_file,
                 "--output", tournament_output
             ], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, "Should work with tournament file")
             self.assertTrue(os.path.exists(tournament_output))
             
-            # Test with schedule file (tournaments listing) - should return no events
+            # Test with schedule file (tournaments listing) - should extract tournament and create events
             schedule_output = os.path.join(temp_dir, "schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py", 
-                "--file", "sample_ppa_tournaments.html",
+                "--schedule-file", "sample_ppa_tournaments.html",
                 "--output", schedule_output
             ], capture_output=True, text=True)
-            # This should fail since schedule listing files don't contain tournament schedules
-            self.assertNotEqual(result.returncode, 0, "Should fail when schedule page has no events")
+            # This should work now since it will extract tournament URL and fetch tournament page
+            self.assertEqual(result.returncode, 0, "Should work with schedule file by extracting tournament URL")
 
 
 def run_test_suite():
