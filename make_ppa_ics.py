@@ -112,12 +112,13 @@ class PPAScheduleParser(HTMLParser):
                 
     def handle_data(self, data):
         if self.in_day_title or self.in_court_title or self.in_event_title:
-            self.text_buffer += data
+            self.text_buffer += data.strip()
             
     def _parse_event_text(self, text: str):
         """Parse event text like 'Singles | 2:00 PM ET - 10:00 PM ET'."""
-        # Handle HTML entities
-        text = html.unescape(text)
+        # Handle HTML entities and clean whitespace
+        text = html.unescape(text).strip()
+        text = re.sub(r'\s+', ' ', text)  # Normalize whitespace
         
         # Split by pipe
         parts = text.split('|')
@@ -130,9 +131,9 @@ class PPAScheduleParser(HTMLParser):
             time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET\s*-\s*\d{1,2}:\d{2}\s*(?:AM|PM)\s*ET)', text, re.IGNORECASE)
             
             if category_match:
-                self.current_category = category_match.group(1)
+                self.current_category = category_match.group(1).strip()
             if time_match:
-                self.current_time = time_match.group(1)
+                self.current_time = time_match.group(1).strip()
         
     def _parse_date(self, date_text: str) -> Optional[str]:
         """Parse date text into YYYY-MM-DD format."""
