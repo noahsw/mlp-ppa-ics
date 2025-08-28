@@ -55,7 +55,7 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
             
             req = Request(url, headers=headers)
             with urlopen(req, timeout=timeout) as response:
-            if debug:
+                if debug:
                     print(f"HTTP response status: {response.getcode()}")
                     print(f"Response headers: {dict(response.headers)}")
 
