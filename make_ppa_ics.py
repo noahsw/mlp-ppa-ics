@@ -63,6 +63,21 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
     return None
 
 
+def parse_tournament_schedule(html_content: str) -> List[Dict[str, Any]]:
+    """Parse tournament page HTML and extract schedule events."""
+    events = []
+
+    # Look for the "how-to-watch" schedule section in the actual PPA website structure
+    schedule_match = re.search(
+        r'<section[^>]*id="how-to-watch"[^>]*>(.*?)</section>', html_content,
+        re.DOTALL)
+    if schedule_match:
+        # Parse actual PPA website structure
+        events = parse_ppa_website_structure(schedule_match.group(1))
+
+    return events
+
+
 def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
     """Parse HTML content and extract schedule events."""
     events = []
@@ -351,11 +366,49 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
     print(f"Created {filename} with {len(events)} events")
 
 
+def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """Fetch tournament page from schedule page. Returns (html_content, tournament_url, tournament_name)"""
+    if debug:
+        print(f"Fetching schedule from: {schedule_url}")
+    
+    schedule_html = fetch_html(schedule_url)
+    if not schedule_html:
+        return None, None, None
+    
+    tournament_url = extract_first_tournament_url(schedule_html)
+    if not tournament_url:
+        if debug:
+            print("No tournament URL found in schedule page")
+        return None, None, None
+    
+    if debug:
+        print(f"Found tournament URL: {tournament_url}")
+    
+    # Fetch the tournament page
+    tournament_html = fetch_html(tournament_url)
+    if not tournament_html:
+        if debug:
+            print(f"Failed to fetch tournament page: {tournament_url}")
+        return None, None, None
+    
+    # Extract tournament name from URL
+    tournament_name = "Tournament"
+    url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
+    if url_match:
+        tournament_name = url_match.group(1).replace('-', ' ').title()
+        if debug:
+            print(f"Extracted tournament name: {tournament_name}")
+    
+    return tournament_html, tournament_url, tournament_name
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate ICS calendar for PPA tournament schedules")
     parser.add_argument("--url", help="PPA tournament schedule URL")
     parser.add_argument("--file", help="Local HTML file to parse")
+    parser.add_argument("--from-schedule", action="store_true", 
+                        help="Fetch first tournament from schedule page")
     parser.add_argument("--tournament",
                         default="Tournament",
                         help="Tournament name")
@@ -368,9 +421,6 @@ def main():
 
     args = parser.parse_args()
 
-    # Default to PPA schedule page if no URL or file specified
-    schedule_url = args.url or "https://www.ppatour.com/schedule/"
-    
     # Get HTML content
     if args.file:
         if args.debug:
@@ -381,51 +431,41 @@ def main():
         except IOError as e:
             print(f"Error reading file {args.file}: {e}", file=sys.stderr)
             sys.exit(1)
+        
+        # Parse tournament schedule from file
+        events = parse_tournament_schedule(html_content)
+        
+    elif args.from_schedule:
+        # Fetch tournament from schedule page
+        schedule_url = args.url or "https://www.ppatour.com/schedule/"
+        html_content, tournament_url, tournament_name = fetch_tournament_from_schedule(schedule_url, args.debug)
+        
+        if not html_content:
+            print("Failed to fetch tournament from schedule", file=sys.stderr)
+            sys.exit(1)
+        
+        # Update tournament name if not provided
+        if args.tournament == "Tournament":
+            args.tournament = tournament_name
+        
+        events = parse_tournament_schedule(html_content)
+        
     else:
+        # Direct tournament URL
+        tournament_url = args.url
+        if not tournament_url:
+            print("Error: Must specify --url, --file, or --from-schedule", file=sys.stderr)
+            sys.exit(1)
+        
         if args.debug:
-            print(f"Fetching schedule from: {schedule_url}")
-        html_content = fetch_html(schedule_url)
+            print(f"Fetching tournament from: {tournament_url}")
+        
+        html_content = fetch_html(tournament_url)
         if not html_content:
             print("Failed to fetch HTML content", file=sys.stderr)
             sys.exit(1)
-
-    # Check if this is a tournament page or schedule page
-    if "how-to-watch" in html_content:
-        # This is a tournament page with schedule
-        if args.debug:
-            print("Found tournament schedule page")
-        events = parse_schedule_content(html_content)
-    elif "tournament-schedule" in html_content:
-        # This is the main schedule page, extract first tournament URL
-        if args.debug:
-            print("Found main schedule page, extracting tournament URL")
         
-        tournament_url = extract_first_tournament_url(html_content)
-        if not tournament_url:
-            print("No tournament URL found in schedule page", file=sys.stderr)
-            sys.exit(1)
-        
-        if args.debug:
-            print(f"Found tournament URL: {tournament_url}")
-        
-        # Fetch the tournament page
-        tournament_html = fetch_html(tournament_url)
-        if not tournament_html:
-            print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
-            sys.exit(1)
-        
-        events = parse_schedule_content(tournament_html)
-        
-        # Extract tournament name from URL if not provided
-        if args.tournament == "Tournament":
-            url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
-            if url_match:
-                args.tournament = url_match.group(1).replace('-', ' ').title()
-                if args.debug:
-                    print(f"Extracted tournament name: {args.tournament}")
-    else:
-        # Try to parse as tournament page anyway
-        events = parse_schedule_content(html_content)
+        events = parse_tournament_schedule(html_content)
 
     if args.debug:
         print(f"Found {len(events)} events:")

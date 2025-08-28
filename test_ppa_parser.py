@@ -272,9 +272,10 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Set up mock to return schedule page first, then tournament page
             mock_fetch.side_effect = [schedule_html, tournament_html]
             
-            # Run the script (should default to schedule URL)
+            # Run the script with explicit --from-schedule flag
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py",
+                "--from-schedule",
                 "--output", test_output,
                 "--debug"
             ], capture_output=True, text=True)
@@ -284,7 +285,6 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertTrue(os.path.exists(test_output))
             
             # Verify debug output shows the workflow
-            self.assertIn("Found main schedule page", result.stdout)
             self.assertIn("Found tournament URL", result.stdout)
             self.assertIn("Extracted tournament name", result.stdout)
 
@@ -398,17 +398,25 @@ class TestPPAICSGenerator(unittest.TestCase):
     @patch('make_ppa_ics.fetch_html')
     def test_error_handling(self, mock_fetch):
         """Test error handling for various failure scenarios"""
-        # Test fetch failure
-        mock_fetch.return_value = None
+        # Test missing URL/file
         result = subprocess.run([
             sys.executable, "make_ppa_ics.py"
+        ], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0, "Should fail when no URL or file specified")
+        
+        # Test fetch failure with --from-schedule
+        mock_fetch.return_value = None
+        result = subprocess.run([
+            sys.executable, "make_ppa_ics.py",
+            "--from-schedule"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when fetch returns None")
         
         # Test schedule page with no tournament URLs
         mock_fetch.return_value = '<html><div class="tournament-schedule">No tournaments</div></html>'
         result = subprocess.run([
-            sys.executable, "make_ppa_ics.py"
+            sys.executable, "make_ppa_ics.py",
+            "--from-schedule"
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail when no tournament URLs found")
 
@@ -425,16 +433,15 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertEqual(result.returncode, 0, "Should work with tournament file")
             self.assertTrue(os.path.exists(tournament_output))
             
-            # Test with schedule file (tournaments listing)
+            # Test with schedule file (tournaments listing) - should return no events
             schedule_output = os.path.join(temp_dir, "schedule.ics")
             result = subprocess.run([
                 sys.executable, "make_ppa_ics.py", 
                 "--file", "sample_ppa_tournaments.html",
                 "--output", schedule_output
             ], capture_output=True, text=True)
-            # This should fail since it's a schedule page without tournament details
-            # The script would try to extract a URL and fetch it, but we can't fetch in file mode
-            self.assertNotEqual(result.returncode, 0, "Should fail when trying to process schedule page from file")
+            # This should fail since schedule listing files don't contain tournament schedules
+            self.assertNotEqual(result.returncode, 0, "Should fail when schedule page has no events")
 
 
 def run_test_suite():
