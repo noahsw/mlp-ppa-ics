@@ -434,8 +434,10 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
             base, ext = os.path.splitext(filename)
             filename = f"{base}-championships{ext}"
 
+    # Use different calendar titles for championships vs regular files
+    calendar_title = "PPA Tour - Championships" if championships_only else "PPA Tour"
     lines = []
-    lines.extend(get_ics_header("PPA Tour", "America/New_York"))
+    lines.extend(get_ics_header(calendar_title, "America/New_York"))
 
     # Add events
     for event in events:
@@ -463,7 +465,7 @@ def write_both_ics_files(base_filename: str, all_events: List[Dict[str, Any]], t
     if championship_events:
         base, ext = os.path.splitext(base_filename)
         championships_filename = f"{base}-championships{ext}"
-        write_ics_file(championships_filename, all_events, tournament_name, championships_only=True)
+        write_ics_file(championships_filename, championship_events, tournament_name, championships_only=True)
     else:
         print("No championship events found, skipping championships file")
 
