@@ -1,4 +1,3 @@
-
 # MLP & PPA Matchups → iCalendar (ICS)
 
 Generate live-updating **.ics** calendars for both Major League Pickleball (MLP) matchups and Professional Pickleball Association (PPA) tournament schedules that your phone or desktop calendar can subscribe to.
