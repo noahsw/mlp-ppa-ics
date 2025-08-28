@@ -381,10 +381,10 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]], tournament_name:
 
     lines.append("END:VCALENDAR")
 
-    # Write file
+    # Write file with proper CRLF line endings
     ics_content = "\r\n".join(lines) + "\r\n"
-    with open(filename, "w", encoding="utf-8", newline="") as f:
-        f.write(ics_content)
+    with open(filename, "wb") as f:
+        f.write(ics_content.encode("utf-8"))
 
     print(f"Created {filename} with {len(events)} events")
 
