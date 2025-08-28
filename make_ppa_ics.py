@@ -552,8 +552,8 @@ def main():
         description="Generate ICS calendar for PPA tournament schedules")
     parser.add_argument("--tournament-url", help="PPA tournament page URL")
     parser.add_argument("--schedule-url", help="PPA schedule page URL (automatically finds first tournament)")
-    parser.add_argument("--tournament-file", help="Local tournament HTML file to parse")
-    parser.add_argument("--schedule-file", help="Local schedule HTML file to parse")
+    parser.add_argument("--tournament-file", help="Local tournament schedule HTML file (specific tournament's how-to-watch page)")
+    parser.add_argument("--schedule-file", help="Local tour schedule HTML file (main tournaments listing page)")
     parser.add_argument("--tournament",
                         default="Tournament",
                         help="Tournament name")
