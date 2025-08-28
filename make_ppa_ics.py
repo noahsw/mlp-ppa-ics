@@ -34,7 +34,7 @@ def fetch_html(url: str, debug: bool = False) -> Optional[str]:
     """Fetch HTML content from URL."""
     if debug:
         print(f"Attempting to fetch: {url}")
-    
+
     headers = {
         'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
@@ -52,11 +52,11 @@ def fetch_html(url: str, debug: bool = False) -> Optional[str]:
             if debug:
                 print(f"HTTP response status: {response.getcode()}")
                 print(f"Response headers: {dict(response.headers)}")
-            
+
             content = response.read()
             if debug:
                 print(f"Raw content length: {len(content)} bytes")
-            
+
             # Check if content is gzip compressed
             content_encoding = response.headers.get('Content-Encoding', '').lower()
             if content_encoding == 'gzip':
@@ -86,7 +86,7 @@ def fetch_html(url: str, debug: bool = False) -> Optional[str]:
                     return None
             elif debug and content_encoding:
                 print(f"Unknown content encoding: {content_encoding}")
-            
+
             # Handle potential encoding issues
             try:
                 decoded = content.decode('utf-8')
@@ -106,7 +106,7 @@ def fetch_html(url: str, debug: bool = False) -> Optional[str]:
                     if debug:
                         print("latin-1 decoding failed, using UTF-8 with error replacement...")
                     return content.decode('utf-8', errors='replace')
-                    
+
     except (URLError, HTTPError) as e:
         print(f"Error fetching URL {url}: {e}", file=sys.stderr)
         if debug:
@@ -131,7 +131,7 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
         # Pattern for any tournament link structure
         r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
     ]
-    
+
     for pattern in patterns:
         match = re.search(pattern, html_content)
         if match:
@@ -140,7 +140,7 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
             if url.startswith('/'):
                 url = 'https://www.ppatour.com' + url
             return url
-    
+
     return None
 
 
@@ -425,23 +425,23 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
     """Fetch tournament page from schedule page. Returns (html_content, tournament_url, tournament_name)"""
     if debug:
         print(f"Fetching schedule from: {schedule_url}")
-    
+
     schedule_html = fetch_html(schedule_url, debug=debug)
     if not schedule_html:
         if debug:
             print("ERROR: Failed to fetch schedule HTML - fetch_html returned None")
         return None, None, None
-    
+
     if debug:
         print(f"Schedule HTML fetched successfully: {len(schedule_html)} characters")
-        
+
         # Check if we got valid HTML
         if schedule_html.startswith('<!DOCTYPE') or schedule_html.startswith('<html'):
             print("✓ HTML appears to be valid (starts with DOCTYPE or html tag)")
         else:
             print("⚠ HTML may be invalid or corrupted")
             print("First 200 characters:", repr(schedule_html[:200]))
-        
+
         # Look for any tournament-related content with multiple patterns
         patterns_to_check = [
             (r'tournament[^>]*>', 'tournament mentions'),
@@ -450,7 +450,7 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
             (r'class="[^"]*tournament[^"]*"', 'tournament CSS classes'),
             (r'<a[^>]*href="[^"]*tournament[^"]*"[^>]*>', 'tournament link tags')
         ]
-        
+
         for pattern, description in patterns_to_check:
             matches = re.findall(pattern, schedule_html, re.IGNORECASE)
             if matches:
@@ -459,14 +459,14 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
                     print(f"  {i+1}: {match[:100]}...")
             else:
                 print(f"No {description} found")
-    
+
     tournament_url = extract_first_tournament_url(schedule_html)
     if not tournament_url:
         if debug:
             print("ERROR: No tournament URL found in schedule page")
             print("\nDebugging URL extraction:")
             print("Trying all URL extraction patterns...")
-            
+
             # Test each pattern individually for debugging
             patterns = [
                 r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
@@ -475,7 +475,7 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
                 r'href="(https://www\.ppatour\.com/tournament/[^"]+)"',
                 r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
             ]
-            
+
             for i, pattern in enumerate(patterns):
                 matches = re.findall(pattern, schedule_html)
                 if matches:
@@ -484,7 +484,7 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
                         print(f"    {j+1}: {match}")
                 else:
                     print(f"  Pattern {i+1}: No matches")
-            
+
             # Show sample HTML around any tournament mentions
             tournament_indices = [m.start() for m in re.finditer(r'tournament', schedule_html, re.IGNORECASE)]
             if tournament_indices:
@@ -498,19 +498,19 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
                 print("\nNo 'tournament' text found anywhere in HTML")
                 print("Sample HTML content (first 1000 chars):")
                 print(schedule_html[:1000])
-        
+
         return None, None, None
-    
+
     if debug:
         print(f"Found tournament URL: {tournament_url}")
-    
+
     # Fetch the tournament page
     tournament_html = fetch_html(tournament_url, debug=debug)
     if not tournament_html:
         if debug:
             print(f"Failed to fetch tournament page: {tournament_url}")
         return None, None, None
-    
+
     # Extract tournament name from URL
     tournament_name = "Tournament"
     url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
@@ -518,7 +518,7 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
         tournament_name = url_match.group(1).replace('-', ' ').title()
         if debug:
             print(f"Extracted tournament name: {tournament_name}")
-    
+
     return tournament_html, tournament_url, tournament_name
 
 
@@ -557,10 +557,10 @@ def main():
         except IOError as e:
             print(f"Error reading file {args.tournament_schedule_file}: {e}", file=sys.stderr)
             sys.exit(1)
-        
+
         # Parse tournament schedule from file
-        events = parse_tournament_schedule(html_content)
-        
+        events = parse_schedule_content(html_content)
+
     elif args.tour_schedule_file:
         if args.debug:
             print(f"Reading schedule content from: {args.tour_schedule_file}")
@@ -570,59 +570,59 @@ def main():
         except IOError as e:
             print(f"Error reading file {args.tour_schedule_file}: {e}", file=sys.stderr)
             sys.exit(1)
-        
+
         # Extract tournament URL from schedule file
         tournament_url = extract_first_tournament_url(schedule_html)
         if not tournament_url:
             print("No tournament URL found in schedule file", file=sys.stderr)
             sys.exit(1)
-        
+
         if args.debug:
             print(f"Found tournament URL in file: {tournament_url}")
-        
+
         # Fetch the tournament page
         html_content = fetch_html(tournament_url, debug=args.debug)
         if not html_content:
             print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
             sys.exit(1)
-        
+
         # Extract tournament name from URL if not provided
         if args.tournament == "Tournament":
             url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
             if url_match:
                 args.tournament = url_match.group(1).replace('-', ' ').title()
-        
-        events = parse_tournament_schedule(html_content)
-        
+
+        events = parse_schedule_content(html_content)
+
     elif args.tour_schedule_url:
         # Fetch tournament from schedule page
         schedule_url = args.tour_schedule_url
         html_content, tournament_url, tournament_name = fetch_tournament_from_schedule(schedule_url, args.debug)
-        
+
         if not html_content:
             print("Failed to fetch tournament from schedule", file=sys.stderr)
             sys.exit(1)
-        
+
         # Update tournament name if not provided
         if args.tournament == "Tournament":
             args.tournament = tournament_name
-        
-        events = parse_tournament_schedule(html_content)
-        
+
+        events = parse_schedule_content(html_content)
+
     elif args.tournament_schedule_url:
         # Direct tournament URL
         tournament_url = args.tournament_schedule_url
-        
+
         if args.debug:
             print(f"Fetching tournament from: {tournament_url}")
-        
+
         html_content = fetch_html(tournament_url, debug=args.debug)
         if not html_content:
             print("Failed to fetch HTML content", file=sys.stderr)
             sys.exit(1)
-        
-        events = parse_tournament_schedule(html_content)
-        
+
+        events = parse_schedule_content(html_content)
+
     else:
         print("Error: Must specify one of --tournament-schedule-url, --tour-schedule-url, --tournament-schedule-file, or --tour-schedule-file", file=sys.stderr)
         sys.exit(1)

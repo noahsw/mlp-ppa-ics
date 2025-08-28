@@ -277,7 +277,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         self.assertEqual(tournament_name, "Open At The Las Vegas Strip")
 
         # Test parsing the tournament schedule page directly
-        events = ppa.parse_tournament_schedule(tournament_schedule_html)
+        events = ppa.parse_schedule_content(tournament_schedule_html)
         self.assertGreater(len(events), 0, "Should parse events from tournament schedule page")
 
         # Verify the workflow components work together
