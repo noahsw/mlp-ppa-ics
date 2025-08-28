@@ -25,7 +25,7 @@ import make_mlp_ics_multi as mlp
 
 # Helper function to load sample data from JSON file
 def load_sample_matchups_data():
-    with open('sample_matchups_data.json', 'r') as f:
+    with open('sample_mlp_matchups_data.json', 'r') as f:
         return json.load(f)
 
 # Helper function to create sample data for testing
@@ -41,7 +41,7 @@ def create_sample_data():
 
 # Helper function to load sample events data from JSON file
 def load_sample_events_data():
-    with open('sample_events_data.json', 'r') as f:
+    with open('sample_mlp_events_data.json', 'r') as f:
         return json.load(f)
 
 
