@@ -248,8 +248,9 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Check it ran successfully
             self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
 
-            # Verify output file was created
-            self.assertTrue(os.path.exists(test_output))
+            # With --championships-only, the filename gets modified to add -championships
+            expected_output = os.path.join(temp_dir, "championships_cli_test-championships.ics")
+            self.assertTrue(os.path.exists(expected_output), f"Expected championships file not created: {expected_output}")
 
             # Verify filtering debug output
             self.assertIn("Filtering to", result.stdout)
@@ -616,12 +617,12 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Write championships-only ICS file
             ppa.write_ics_file(test_file, events, self.tournament_name, championships_only=True)
 
-            # Verify file was created
-            self.assertTrue(os.path.exists(test_file))
-
             # The file should be created with -championships suffix
             expected_file = os.path.join(temp_dir, "championships_test-championships.ics")
-            self.assertTrue(os.path.exists(expected_file))
+            self.assertTrue(os.path.exists(expected_file), f"Expected championships file not created: {expected_file}")
+            
+            # The original filename should NOT exist when championships_only=True
+            self.assertFalse(os.path.exists(test_file), f"Original file should not exist with championships_only=True: {test_file}")
 
             # Read and validate content
             with open(expected_file, "r", encoding="utf-8") as f:
