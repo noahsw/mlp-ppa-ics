@@ -423,19 +423,42 @@ def filter_championship_events(events: List[Dict[str, Any]]) -> List[Dict[str, A
     return championship_events
 
 
+def filter_singles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter events to include only Singles events."""
+    return [event for event in events if "singles" in event.get("category", "").lower()]
+
+
+def filter_gender_doubles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter events to include only Men's/Women's Doubles events."""
+    gender_doubles_events = []
+    for event in events:
+        category = event.get("category", "").lower()
+        # Match various gender doubles patterns
+        if any(keyword in category for keyword in ["men's", "women's", "men's/women's", "gender"]):
+            gender_doubles_events.append(event)
+    return gender_doubles_events
+
+
+def filter_mixed_doubles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter events to include only Mixed Doubles events."""
+    return [event for event in events if "mixed" in event.get("category", "").lower()]
+
+
+def filter_by_broadcaster(events: List[Dict[str, Any]], broadcaster: str) -> List[Dict[str, Any]]:
+    """Filter events by broadcaster."""
+    return [event for event in events if event.get("broadcaster", "").lower() == broadcaster.lower()]
+
+
+def filter_by_court(events: List[Dict[str, Any]], court: str) -> List[Dict[str, Any]]:
+    """Filter events by court name."""
+    return [event for event in events if court.lower() in event.get("court", "").lower()]
+
+
 def write_ics_file(filename: str, events: List[Dict[str, Any]],
-                   tournament_name: str, championships_only: bool = False):
+                   tournament_name: str, calendar_title: str = "PPA Tour"):
     """Write events to ICS file."""
     dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
-    if championships_only:
-        events = filter_championship_events(events)
-        if not filename.endswith("-championships.ics"):
-            base, ext = os.path.splitext(filename)
-            filename = f"{base}-championships{ext}"
-
-    # Use different calendar titles for championships vs regular files
-    calendar_title = "PPA Tour - Championships" if championships_only else "PPA Tour"
     lines = []
     lines.extend(get_ics_header(calendar_title, "America/New_York"))
 
@@ -455,19 +478,35 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
     print(f"Created {filename} with {len(events)} events")
 
 
-def write_both_ics_files(base_filename: str, all_events: List[Dict[str, Any]], tournament_name: str):
-    """Write both main ICS file (all events) and championships ICS file."""
-    # Write main file with all events
-    write_ics_file(base_filename, all_events, tournament_name, championships_only=False)
+def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], tournament_name: str, debug: bool = False):
+    """Write all specialized ICS files based on different filters."""
+    base, ext = os.path.splitext(base_filename)
     
-    # Write championships file
-    championship_events = filter_championship_events(all_events)
-    if championship_events:
-        base, ext = os.path.splitext(base_filename)
-        championships_filename = f"{base}-championships{ext}"
-        write_ics_file(championships_filename, championship_events, tournament_name, championships_only=True)
-    else:
-        print("No championship events found, skipping championships file")
+    # Define all the filters and their corresponding filenames and calendar titles
+    filters = [
+        ("", all_events, "PPA Tour"),  # Main file with all events
+        ("-championships", filter_championship_events(all_events), "PPA Tour - Championships"),
+        ("-singles", filter_singles_events(all_events), "PPA Tour - Singles"),
+        ("-gender-doubles", filter_gender_doubles_events(all_events), "PPA Tour - Men's/Women's Doubles"),
+        ("-mixed-doubles", filter_mixed_doubles_events(all_events), "PPA Tour - Mixed Doubles"),
+        ("-pickleballtv", filter_by_broadcaster(all_events, "PickleballTV"), "PPA Tour - PickleballTV"),
+        ("-tennis-channel", filter_by_broadcaster(all_events, "Tennis Channel"), "PPA Tour - Tennis Channel"),
+        ("-fs2", filter_by_broadcaster(all_events, "FS2"), "PPA Tour - FS2"),
+        ("-championship-court", filter_by_court(all_events, "Championship Court"), "PPA Tour - Championship Court"),
+        ("-grandstand-court", filter_by_court(all_events, "Grandstand Court"), "PPA Tour - Grandstand Court"),
+    ]
+    
+    files_created = 0
+    for suffix, filtered_events, calendar_title in filters:
+        if filtered_events:
+            filename = f"{base}{suffix}{ext}"
+            write_ics_file(filename, filtered_events, tournament_name, calendar_title)
+            files_created += 1
+        elif debug:
+            print(f"No events found for {calendar_title}, skipping {base}{suffix}{ext}")
+    
+    if debug:
+        print(f"Created {files_created} ICS files from {len(all_events)} total events")
 
 
 def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -698,7 +737,7 @@ def main():
         print("No events found in the HTML content", file=sys.stderr)
         sys.exit(1)
 
-    # Handle championships-only flag
+    # Handle championships-only flag for backward compatibility
     if args.championships_only:
         championship_events = filter_championship_events(events)
         if args.debug:
@@ -706,13 +745,15 @@ def main():
         if not championship_events:
             print("No championship events found in the tournament schedule", file=sys.stderr)
             sys.exit(1)
-        # Write only championships file
-        write_ics_file(args.output, events, args.tournament, championships_only=True)
+        # Write only championships file with modified filename
+        base, ext = os.path.splitext(args.output)
+        championships_filename = f"{base}-championships{ext}"
+        write_ics_file(championships_filename, championship_events, args.tournament, "PPA Tour - Championships")
     else:
-        # Default behavior: write both files
+        # Default behavior: write all specialized files
         if args.debug:
-            print(f"Creating both main calendar and championships calendar from {len(events)} total events")
-        write_both_ics_files(args.output, events, args.tournament)
+            print(f"Creating all specialized calendar files from {len(events)} total events")
+        write_all_ics_files(args.output, events, args.tournament, args.debug)
 
 
 if __name__ == "__main__":

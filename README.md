@@ -31,9 +31,25 @@ Use any of these URLs when subscribing (pick one or many):
 
 Use any of these URLs when subscribing (pick one or many):
 
-- **All:** https://noahsw.github.io/mlp-ppa-ics/ppa.ics
+- **All Events:** https://noahsw.github.io/mlp-ppa-ics/ppa.ics
 
 - **Championships:** https://noahsw.github.io/mlp-ppa-ics/ppa-championships.ics
+
+- **Singles:** https://noahsw.github.io/mlp-ppa-ics/ppa-singles.ics
+
+- **Men's/Women's Doubles:** https://noahsw.github.io/mlp-ppa-ics/ppa-gender-doubles.ics
+
+- **Mixed Doubles:** https://noahsw.github.io/mlp-ppa-ics/ppa-mixed-doubles.ics
+
+- **PickleballTV:** https://noahsw.github.io/mlp-ppa-ics/ppa-pickleballtv.ics
+
+- **Tennis Channel:** https://noahsw.github.io/mlp-ppa-ics/ppa-tennis-channel.ics
+
+- **FS2:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs2.ics
+
+- **Championship Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-championship-court.ics
+
+- **Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-grandstand-court.ics
 
 ## Subscribe instructions
 These steps are the same for **any** of the Calendar URLs above.
@@ -93,7 +109,14 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 * Parses tournament event details including dates, times, courts, categories, and broadcasters
 * Supports both direct tournament URLs and automatic tournament discovery from schedule pages
 * Converts Eastern Time to UTC for proper calendar display
-* Generates ICS files with complete event information and proper formatting
+* Generates multiple specialized ICS files:
+  - **All events** (ppa.ics)
+  - **Championships only** (ppa-championships.ics)
+  - **Singles events** (ppa-singles.ics)
+  - **Men's/Women's doubles** (ppa-gender-doubles.ics)
+  - **Mixed doubles** (ppa-mixed-doubles.ics)
+  - **By broadcaster**: PickleballTV, Tennis Channel, FS2
+  - **By court**: Championship Court, Grandstand Court
 
 ---
 
@@ -142,9 +165,21 @@ Usage:
   python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/ --championships-only
 
 Options:
-* `--output filename.ics` – specify output filename (default: ppa.ics, or ppa-championships.ics if --championships-only)
+* `--output filename.ics` – specify base output filename (default: ppa.ics)
 * `--championships-only` – filter to only championship/finals events (creates ppa-championships.ics by default)
 * `--debug` – print verbose parsing information
+
+**Default behavior:** Creates multiple specialized ICS files from a single tournament:
+- `ppa.ics` - All events
+- `ppa-championships.ics` - Championships only
+- `ppa-singles.ics` - Singles events only
+- `ppa-gender-doubles.ics` - Men's/Women's doubles events only
+- `ppa-mixed-doubles.ics` - Mixed doubles events only
+- `ppa-pickleballtv.ics` - PickleballTV broadcasts only
+- `ppa-tennis-channel.ics` - Tennis Channel broadcasts only
+- `ppa-fs2.ics` - FS2 broadcasts only
+- `ppa-championship-court.ics` - Championship Court events only
+- `ppa-grandstand-court.ics` - Grandstand Court events only
 
 ### Testing
 
@@ -203,8 +238,11 @@ Run the scripts directly in Replit:
 # Generate MLP calendars
 python make_mlp_ics_multi.py --debug
 
-# Generate PPA calendar for a specific tournament
-python make_ppa_ics.py --tournament-url [TOURNAMENT_URL] --debug
+# Generate PPA calendars for a specific tournament (creates multiple specialized files)
+python make_ppa_ics.py --tournament-schedule-url [TOURNAMENT_URL] --debug
+
+# Generate only championships calendar
+python make_ppa_ics.py --tournament-schedule-url [TOURNAMENT_URL] --championships-only --debug
 ```
 
 ### Customization

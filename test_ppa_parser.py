@@ -602,6 +602,98 @@ class TestPPAICSGenerator(unittest.TestCase):
         self.assertNotIn('Singles', championship_categories)
         self.assertNotIn('Mixed Doubles', championship_categories)
 
+    def test_singles_filtering(self):
+        """Test filtering events to only singles events"""
+        test_events = [
+            {'category': 'Singles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Men\'s Singles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Mixed Doubles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+        ]
+
+        singles_events = ppa.filter_singles_events(test_events)
+        self.assertEqual(len(singles_events), 2, "Should filter to 2 singles events")
+        
+        categories = [e['category'] for e in singles_events]
+        self.assertIn('Singles', categories)
+        self.assertIn('Men\'s Singles', categories)
+        self.assertNotIn('Mixed Doubles', categories)
+
+    def test_gender_doubles_filtering(self):
+        """Test filtering events to only men's/women's doubles events"""
+        test_events = [
+            {'category': 'Men\'s Doubles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Women\'s Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Men\'s/Women\'s Doubles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+            {'category': 'Mixed Doubles', 'date': '2025-08-31', 'court': 'Court 4', 'time': '4:00 PM ET - 6:00 PM ET', 'broadcaster': 'PickleballTV'},
+        ]
+
+        gender_doubles_events = ppa.filter_gender_doubles_events(test_events)
+        self.assertEqual(len(gender_doubles_events), 3, "Should filter to 3 gender doubles events")
+        
+        categories = [e['category'] for e in gender_doubles_events]
+        self.assertIn('Men\'s Doubles', categories)
+        self.assertIn('Women\'s Doubles', categories)
+        self.assertIn('Men\'s/Women\'s Doubles', categories)
+        self.assertNotIn('Mixed Doubles', categories)
+
+    def test_mixed_doubles_filtering(self):
+        """Test filtering events to only mixed doubles events"""
+        test_events = [
+            {'category': 'Mixed Doubles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Mixed Doubles Final', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Men\'s Doubles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+        ]
+
+        mixed_doubles_events = ppa.filter_mixed_doubles_events(test_events)
+        self.assertEqual(len(mixed_doubles_events), 2, "Should filter to 2 mixed doubles events")
+        
+        categories = [e['category'] for e in mixed_doubles_events]
+        self.assertIn('Mixed Doubles', categories)
+        self.assertIn('Mixed Doubles Final', categories)
+        self.assertNotIn('Men\'s Doubles', categories)
+
+    def test_broadcaster_filtering(self):
+        """Test filtering events by broadcaster"""
+        test_events = [
+            {'category': 'Singles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Mixed', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+        ]
+
+        # Test PickleballTV filtering
+        ptv_events = ppa.filter_by_broadcaster(test_events, "PickleballTV")
+        self.assertEqual(len(ptv_events), 1, "Should filter to 1 PickleballTV event")
+        self.assertEqual(ptv_events[0]['broadcaster'], 'PickleballTV')
+
+        # Test Tennis Channel filtering
+        tc_events = ppa.filter_by_broadcaster(test_events, "Tennis Channel")
+        self.assertEqual(len(tc_events), 1, "Should filter to 1 Tennis Channel event")
+        self.assertEqual(tc_events[0]['broadcaster'], 'Tennis Channel')
+
+        # Test FS2 filtering
+        fs2_events = ppa.filter_by_broadcaster(test_events, "FS2")
+        self.assertEqual(len(fs2_events), 1, "Should filter to 1 FS2 event")
+        self.assertEqual(fs2_events[0]['broadcaster'], 'FS2')
+
+    def test_court_filtering(self):
+        """Test filtering events by court"""
+        test_events = [
+            {'category': 'Singles', 'date': '2025-08-28', 'court': 'Championship Court', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Doubles', 'date': '2025-08-29', 'court': 'Grandstand Court', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Mixed', 'date': '2025-08-30', 'court': 'Championship Court', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+        ]
+
+        # Test Championship Court filtering
+        championship_court_events = ppa.filter_by_court(test_events, "Championship Court")
+        self.assertEqual(len(championship_court_events), 2, "Should filter to 2 Championship Court events")
+        for event in championship_court_events:
+            self.assertIn("Championship Court", event['court'])
+
+        # Test Grandstand Court filtering
+        grandstand_court_events = ppa.filter_by_court(test_events, "Grandstand Court")
+        self.assertEqual(len(grandstand_court_events), 1, "Should filter to 1 Grandstand Court event")
+        self.assertEqual(grandstand_court_events[0]['court'], 'Grandstand Court')
+
     def test_championships_only_ics_generation(self):
         """Test generating ICS file with championships-only filtering"""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -694,6 +786,58 @@ class TestPPAICSGenerator(unittest.TestCase):
                 expected_summary = f"PPA {event['category']} ({event['court']}) - {event['broadcaster']}"
                 self.assertIn(ppa.ics_escape(expected_summary), ics_content,
                             f"ICS should contain event: {expected_summary}")
+
+    def test_multiple_ics_files_generation(self):
+        """Test generation of multiple specialized ICS files"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_file = os.path.join(temp_dir, "ppa.ics")
+
+            # Read sample HTML
+            with open(self.sample_html_file, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+
+            # Parse events
+            events = ppa.parse_schedule_content(html_content)
+
+            # Generate all ICS files
+            ppa.write_all_ics_files(base_file, events, self.tournament_name, debug=True)
+
+            # Check that expected files were created
+            expected_files = [
+                "ppa.ics",
+                "ppa-championships.ics",
+                "ppa-singles.ics",
+                "ppa-mixed-doubles.ics",
+                "ppa-pickleballtv.ics",
+                "ppa-tennis-channel.ics",
+                "ppa-championship-court.ics",
+                "ppa-grandstand-court.ics"
+            ]
+
+            created_files = []
+            for filename in expected_files:
+                file_path = os.path.join(temp_dir, filename)
+                if os.path.exists(file_path):
+                    created_files.append(filename)
+                    # Verify file has valid ICS structure
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    self.assertIn("BEGIN:VCALENDAR", content)
+                    self.assertIn("END:VCALENDAR", content)
+                    self.assertIn("X-WR-CALNAME:PPA Tour", content)
+
+            self.assertGreater(len(created_files), 0, "Should create at least some ICS files")
+            self.assertIn("ppa.ics", created_files, "Should always create main ICS file")
+
+            # Test specific filtering - verify singles file only has singles events
+            singles_file = os.path.join(temp_dir, "ppa-singles.ics")
+            if os.path.exists(singles_file):
+                with open(singles_file, "r", encoding="utf-8") as f:
+                    singles_content = f.read()
+                # Should contain "Singles" but not "Mixed Doubles"
+                if "BEGIN:VEVENT" in singles_content:  # Only check if there are events
+                    self.assertIn("Singles", singles_content)
+                    self.assertNotIn("Mixed Doubles", singles_content)
 
     def test_error_handling(self):
         """Test error handling for various failure scenarios"""
