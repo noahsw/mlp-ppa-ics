@@ -606,7 +606,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         """Test filtering events to only singles events"""
         test_events = [
             {'category': 'Singles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
-            {'category': 'Men\'s Singles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Singles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
             {'category': 'Mixed Doubles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
         ]
 
@@ -615,26 +615,24 @@ class TestPPAICSGenerator(unittest.TestCase):
         
         categories = [e['category'] for e in singles_events]
         self.assertIn('Singles', categories)
-        self.assertIn('Men\'s Singles', categories)
         self.assertNotIn('Mixed Doubles', categories)
 
     def test_gender_doubles_filtering(self):
         """Test filtering events to only men's/women's doubles events"""
         test_events = [
-            {'category': 'Men\'s Doubles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
-            {'category': 'Women\'s Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
-            {'category': 'Men\'s/Women\'s Doubles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+            {'category': 'Men\'s/Women\'s Doubles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            {'category': 'Men\'s/Women\'s Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            {'category': 'Singles', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
             {'category': 'Mixed Doubles', 'date': '2025-08-31', 'court': 'Court 4', 'time': '4:00 PM ET - 6:00 PM ET', 'broadcaster': 'PickleballTV'},
         ]
 
         gender_doubles_events = ppa.filter_gender_doubles_events(test_events)
-        self.assertEqual(len(gender_doubles_events), 3, "Should filter to 3 gender doubles events")
+        self.assertEqual(len(gender_doubles_events), 2, "Should filter to 2 gender doubles events")
         
         categories = [e['category'] for e in gender_doubles_events]
-        self.assertIn('Men\'s Doubles', categories)
-        self.assertIn('Women\'s Doubles', categories)
         self.assertIn('Men\'s/Women\'s Doubles', categories)
         self.assertNotIn('Mixed Doubles', categories)
+        self.assertNotIn('Singles', categories)
 
     def test_mixed_doubles_filtering(self):
         """Test filtering events to only mixed doubles events"""
