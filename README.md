@@ -2,6 +2,8 @@
 
 Generate live-updating **.ics** calendars for both Major League Pickleball (MLP) matchups and Professional Pickleball Association (PPA) tournament schedules that your phone or desktop calendar can subscribe to.
 
+![Screenshot of calendar](https://github.com/noahsw/mlp-ppa-ics/blob/main/screenshot.jpg?raw=true)
+
 ---
 
 ## MLP Calendar Subscriptions
@@ -21,9 +23,6 @@ Use any of these URLs when subscribing (pick one or many):
 - **Challenger — Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger-grandstand.ics
 
 - **Challenger — Championship Court:** https://noahsw.github.io/mlp-ppa-ics/mlp-challenger-championship.ics
-
-> **Tip:** The combined feed is the easiest starting point. Add per‑division/court feeds if you want selective alerts.
-
 
 ---
 
@@ -50,6 +49,8 @@ Use any of these URLs when subscribing (pick one or many):
 - **Tennis Channel:** https://noahsw.github.io/mlp-ppa-ics/ppa-tennis-channel.ics
 
 - **FS2:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs2.ics
+
+---
 
 ## Subscribe instructions
 These steps are the same for **any** of the Calendar URLs above.
@@ -222,27 +223,14 @@ python -m unittest test_mlp_ics.py test_ppa_parser.py -v
 * Error handling and edge cases
 * Full integration testing
 
-### Automation / Deploy (Replit Deployments)
-
-This project can be deployed on Replit using Deployments for automatic hosting and scheduling:
-
-1. **Deploy on Replit**: Use the Deployments feature to publish your project
-2. **Schedule updates**: Set up a cron job or periodic task to run the scripts automatically
-3. **Serve files**: The generated `.ics` files will be accessible via your deployment URL
-
 ### Manual execution
-
-Run the scripts directly in Replit:
 
 ```bash
 # Generate MLP calendars
 python make_mlp_ics_multi.py --debug
 
-# Generate PPA calendars for a specific tournament (creates multiple specialized files)
-python make_ppa_ics.py --tournament-schedule-url [TOURNAMENT_URL] --debug
-
-# Generate only championships calendar
-python make_ppa_ics.py --tournament-schedule-url [TOURNAMENT_URL] --championships-only --debug
+# Generate PPA calendar
+python make_ppa_ics.py --debug
 ```
 
 ### Customization
