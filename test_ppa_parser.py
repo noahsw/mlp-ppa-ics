@@ -612,7 +612,7 @@ class TestPPAICSGenerator(unittest.TestCase):
 
         singles_events = ppa.filter_singles_events(test_events)
         self.assertEqual(len(singles_events), 2, "Should filter to 2 singles events")
-        
+
         categories = [e['category'] for e in singles_events]
         self.assertIn('Singles', categories)
         self.assertNotIn('Mixed Doubles', categories)
@@ -628,7 +628,7 @@ class TestPPAICSGenerator(unittest.TestCase):
 
         gender_doubles_events = ppa.filter_gender_doubles_events(test_events)
         self.assertEqual(len(gender_doubles_events), 2, "Should filter to 2 gender doubles events")
-        
+
         categories = [e['category'] for e in gender_doubles_events]
         self.assertIn('Men\'s/Women\'s Doubles', categories)
         self.assertNotIn('Mixed Doubles', categories)
@@ -644,7 +644,7 @@ class TestPPAICSGenerator(unittest.TestCase):
 
         mixed_doubles_events = ppa.filter_mixed_doubles_events(test_events)
         self.assertEqual(len(mixed_doubles_events), 2, "Should filter to 2 mixed doubles events")
-        
+
         categories = [e['category'] for e in mixed_doubles_events]
         self.assertIn('Mixed Doubles', categories)
         self.assertIn('Mixed Doubles Final', categories)
@@ -704,37 +704,39 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Parse events
             events = ppa.parse_schedule_content(html_content)
 
-            # Write championships-only ICS file
-            ppa.write_ics_file(test_file, events, self.tournament_name, championships_only=True)
+            # Filter to championships events and write ICS file
+            championship_events = ppa.filter_championship_events(events)
 
-            # The file should be created with -championships suffix
-            expected_file = os.path.join(temp_dir, "championships_test-championships.ics")
-            self.assertTrue(os.path.exists(expected_file), f"Expected championships file not created: {expected_file}")
-            
-            # The original filename should NOT exist when championships_only=True
-            self.assertFalse(os.path.exists(test_file), f"Original file should not exist with championships_only=True: {test_file}")
+            # Create championships filename
+            base, ext = os.path.splitext(test_file)
+            championships_file = f"{base}-championships{ext}"
+
+            ppa.write_ics_file(championships_file, championship_events, self.tournament_name, "PPA Tour - Championships")
+
+            # The championships file should be created
+            self.assertTrue(os.path.exists(championships_file), f"Expected championships file not created: {championships_file}")
 
             # Read and validate content
-            with open(expected_file, "r", encoding="utf-8") as f:
+            with open(championships_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check ICS structure
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
-            self.assertIn("X-WR-CALNAME:PPA Tour", content)
+            self.assertIn("X-WR-CALNAME:PPA Tour - Championships", content)
 
             # Count events in ICS file
             event_count = content.count("BEGIN:VEVENT")
 
             # Count championship events in original data
-            championship_events = ppa.filter_championship_events(events)
+            championship_events_filtered = ppa.filter_championship_events(events)
 
-            self.assertEqual(event_count, len(championship_events), "Should have correct number of championship events")
+            self.assertEqual(event_count, len(championship_events_filtered), "Should have correct number of championship events")
 
             # Should only contain championship-related events
-            if championship_events:
+            if championship_events_filtered:
                 # Check that championship events are included
-                for event in championship_events:
+                for event in championship_events_filtered:
                     expected_summary = f"PPA {event['category']} ({event['court']}) - {event['broadcaster']}"
                     self.assertIn(ppa.ics_escape(expected_summary), content,
                                 f"ICS should contain championship event: {expected_summary}")
@@ -892,7 +894,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Read the tour schedule file and test URL extraction directly
             with open("sample_ppa_tour_schedule.html", 'r', encoding='utf-8') as f:
                 tour_html = f.read()
-            
+
             # Test that we can extract a tournament URL from the tour schedule
             tournament_url = ppa.extract_first_tournament_url(tour_html)
             self.assertIsNotNone(tournament_url, "Should extract tournament URL from tour schedule file")
