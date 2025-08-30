@@ -41,15 +41,15 @@ Use any of these URLs when subscribing (pick one or many):
 
 - **Mixed Doubles:** https://noahsw.github.io/mlp-ppa-ics/ppa-mixed-doubles.ics
 
+- **Championship Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-championship-court.ics
+
+- **Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-grandstand-court.ics
+
 - **PickleballTV:** https://noahsw.github.io/mlp-ppa-ics/ppa-pickleballtv.ics
 
 - **Tennis Channel:** https://noahsw.github.io/mlp-ppa-ics/ppa-tennis-channel.ics
 
 - **FS2:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs2.ics
-
-- **Championship Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-championship-court.ics
-
-- **Grandstand Court:** https://noahsw.github.io/mlp-ppa-ics/ppa-grandstand-court.ics
 
 ## Subscribe instructions
 These steps are the same for **any** of the Calendar URLs above.
