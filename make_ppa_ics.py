@@ -475,7 +475,10 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
     with open(filename, "wb") as f:
         f.write(ics_content.encode("utf-8"))
 
-    print(f"Created {filename} with {len(events)} events")
+    if len(events) == 0:
+        print(f"Created {filename} with 0 events (empty calendar)")
+    else:
+        print(f"Created {filename} with {len(events)} events")
 
 
 def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], tournament_name: str, debug: bool = False):
@@ -743,8 +746,10 @@ def main():
             )
 
     if not events:
-        print("No events found in the HTML content", file=sys.stderr)
-        sys.exit(1)
+        print("No events found in the HTML content - creating empty ICS file", file=sys.stderr)
+        # Create empty ICS file instead of exiting with error
+        write_ics_file(args.output, [], args.tournament, "PPA Tour")
+        return
 
     # Handle championships-only flag for backward compatibility
     if args.championships_only:
@@ -752,8 +757,12 @@ def main():
         if args.debug:
             print(f"Filtering to {len(championship_events)} championship events out of {len(events)} total events")
         if not championship_events:
-            print("No championship events found in the tournament schedule", file=sys.stderr)
-            sys.exit(1)
+            print("No championship events found in the tournament schedule - creating empty ICS file", file=sys.stderr)
+            # Create empty championships ICS file instead of exiting with error
+            base, ext = os.path.splitext(args.output)
+            championships_filename = f"{base}-championships{ext}"
+            write_ics_file(championships_filename, [], args.tournament, "PPA Tour - Championships")
+            return
         # Write only championships file with modified filename
         base, ext = os.path.splitext(args.output)
         championships_filename = f"{base}-championships{ext}"

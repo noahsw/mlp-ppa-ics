@@ -851,17 +851,32 @@ class TestPPAICSGenerator(unittest.TestCase):
         ], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0, "Should fail with non-existent file")
 
-        # Test with empty HTML file
+        # Test with empty HTML file - should now create empty ICS instead of failing
         with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as f:
             f.write("<html><body>No schedule data</body></html>")
             empty_file = f.name
 
         try:
-            result = subprocess.run([
-                sys.executable, "make_ppa_ics.py",
-                "--tournament-schedule-file", empty_file
-            ], capture_output=True, text=True)
-            self.assertNotEqual(result.returncode, 0, "Should fail with file containing no events")
+            with tempfile.TemporaryDirectory() as temp_dir:
+                output_file = os.path.join(temp_dir, "empty_test.ics")
+                result = subprocess.run([
+                    sys.executable, "make_ppa_ics.py",
+                    "--tournament-schedule-file", empty_file,
+                    "--tournament", "Empty Tournament",
+                    "--output", output_file
+                ], capture_output=True, text=True)
+                
+                # Should succeed with zero events
+                self.assertEqual(result.returncode, 0, "Should succeed and create empty ICS file")
+                self.assertTrue(os.path.exists(output_file), "Should create output file")
+                
+                # Verify empty ICS file structure
+                with open(output_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                self.assertIn("BEGIN:VCALENDAR", content)
+                self.assertIn("END:VCALENDAR", content)
+                self.assertIn("X-WR-CALNAME:PPA Tour", content)
+                self.assertEqual(content.count("BEGIN:VEVENT"), 0, "Should have zero events")
         finally:
             os.unlink(empty_file)
 
