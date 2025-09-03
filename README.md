@@ -48,6 +48,8 @@ Use any of these URLs when subscribing (pick one or many):
 
 - **Tennis Channel:** https://noahsw.github.io/mlp-ppa-ics/ppa-tennis-channel.ics
 
+- **FS1:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs1.ics
+
 - **FS2:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs2.ics
 
 ---
@@ -116,7 +118,7 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
   - **Singles events** (ppa-singles.ics)
   - **Men's/Women's doubles** (ppa-gender-doubles.ics)
   - **Mixed doubles** (ppa-mixed-doubles.ics)
-  - **By broadcaster**: PickleballTV, Tennis Channel, FS2
+  - **By broadcaster**: PickleballTV, Tennis Channel, FS1, FS2
   - **By court**: Championship Court, Grandstand Court
 
 ---
@@ -168,6 +170,8 @@ Usage:
 Options:
 * `--output filename.ics` – specify base output filename (default: ppa.ics)
 * `--championships-only` – filter to only championship/finals events (creates ppa-championships.ics by default)
+* `--fs1`: Generate `ppa-fs1.ics` with only FS1 events
+* `--fs2`: Generate `ppa-fs2.ics` with only FS2 events
 * `--debug` – print verbose parsing information
 
 **Default behavior:** Creates multiple specialized ICS files from a single tournament:
@@ -178,6 +182,7 @@ Options:
 - `ppa-mixed-doubles.ics` - Mixed doubles events only
 - `ppa-pickleballtv.ics` - PickleballTV broadcasts only
 - `ppa-tennis-channel.ics` - Tennis Channel broadcasts only
+- `ppa-fs1.ics` - FS1 broadcasts only
 - `ppa-fs2.ics` - FS2 broadcasts only
 - `ppa-championship-court.ics` - Championship Court events only
 - `ppa-grandstand-court.ics` - Grandstand Court events only

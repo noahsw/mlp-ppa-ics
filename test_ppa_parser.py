@@ -464,7 +464,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Check it ran successfully
             self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
 
-            # With --championships-only flag, should only create the championships file
+            # With --championships-only, should only create the championships file
             # The output filename should be modified to include -championships
             expected_championships_file = os.path.join(temp_dir, "ppa-championships.ics")
 
@@ -668,6 +668,13 @@ class TestPPAICSGenerator(unittest.TestCase):
         self.assertEqual(len(tc_events), 1, "Should filter to 1 Tennis Channel event")
         self.assertEqual(tc_events[0]['broadcaster'], 'Tennis Channel')
 
+        # Test FS1 filtering with actual sample data
+        with open(self.sample_html_file, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        real_events = ppa.parse_schedule_content(html_content)
+        fs1_events = ppa.filter_by_broadcaster(real_events, "FS1")
+        self.assertEqual(len(fs1_events), 2, "Should filter to 2 FS1 events from sample data")
+
         # Test FS2 filtering
         fs2_events = ppa.filter_by_broadcaster(test_events, "FS2")
         self.assertEqual(len(fs2_events), 1, "Should filter to 1 FS2 event")
@@ -804,14 +811,10 @@ class TestPPAICSGenerator(unittest.TestCase):
 
             # Check that expected files were created
             expected_files = [
-                "ppa.ics",
-                "ppa-championships.ics",
-                "ppa-singles.ics",
-                "ppa-mixed-doubles.ics",
-                "ppa-pickleballtv.ics",
-                "ppa-tennis-channel.ics",
-                "ppa-championship-court.ics",
-                "ppa-grandstand-court.ics"
+                'ppa.ics', 'ppa-championships.ics', 'ppa-singles.ics',
+                'ppa-gender-doubles.ics', 'ppa-mixed-doubles.ics',
+                'ppa-pickleballtv.ics', 'ppa-tennis-channel.ics', 'ppa-fs1.ics', 'ppa-fs2.ics',
+                'ppa-championship-court.ics', 'ppa-grandstand-court.ics'
             ]
 
             created_files = []

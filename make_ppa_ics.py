@@ -265,9 +265,9 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
                 time_text = html.unescape(time_match.group(1)).strip()
 
                 # Extract broadcaster
+                broadcaster = 'Unknown'
                 broadcaster_match = re.search(r'<a[^>]*href="([^"]*)"[^>]*>',
                                               event_content)
-                broadcaster = 'Unknown'
                 if broadcaster_match:
                     href = broadcaster_match.group(1)
                     if 'pickleballtv.com' in href:
@@ -481,7 +481,7 @@ def write_ics_file(filename: str, events: List[Dict[str, Any]],
 def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], tournament_name: str, debug: bool = False):
     """Write all specialized ICS files based on different filters."""
     base, ext = os.path.splitext(base_filename)
-    
+
     # Define all the filters and their corresponding filenames and calendar titles
     filters = [
         ("", all_events, "PPA Tour"),  # Main file with all events
@@ -491,11 +491,12 @@ def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], to
         ("-mixed-doubles", filter_mixed_doubles_events(all_events), "PPA Tour - Mixed Doubles"),
         ("-pickleballtv", filter_by_broadcaster(all_events, "PickleballTV"), "PPA Tour - PickleballTV"),
         ("-tennis-channel", filter_by_broadcaster(all_events, "Tennis Channel"), "PPA Tour - Tennis Channel"),
+        ("-fs1", filter_by_broadcaster(all_events, "FS1"), "PPA Tour - FS1"),
         ("-fs2", filter_by_broadcaster(all_events, "FS2"), "PPA Tour - FS2"),
         ("-championship-court", filter_by_court(all_events, "Championship Court"), "PPA Tour - Championship Court"),
         ("-grandstand-court", filter_by_court(all_events, "Grandstand Court"), "PPA Tour - Grandstand Court"),
     ]
-    
+
     files_created = 0
     for suffix, filtered_events, calendar_title in filters:
         if filtered_events:
@@ -504,7 +505,7 @@ def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], to
             files_created += 1
         elif debug:
             print(f"No events found for {calendar_title}, skipping {base}{suffix}{ext}")
-    
+
     if debug:
         print(f"Created {files_created} ICS files from {len(all_events)} total events")
 
@@ -629,6 +630,14 @@ def main():
     parser.add_argument("--championships-only",
                         action="store_true",
                         help="Filter to only championship events (creates ppa-championships.ics by default)")
+    parser.add_argument("--pickleballtv", action='store_true',
+                        help='Create ICS file with only PickleballTV events')
+    parser.add_argument('--tennis-channel', action='store_true',
+                        help='Create ICS file with only Tennis Channel events')
+    parser.add_argument('--fs1', action='store_true',
+                        help='Create ICS file with only FS1 events')
+    parser.add_argument('--fs2', action='store_true',
+                        help='Create ICS file with only FS2 events')
     parser.add_argument("--debug",
                         action="store_true",
                         help="Print debug information")
@@ -750,10 +759,43 @@ def main():
         championships_filename = f"{base}-championships{ext}"
         write_ics_file(championships_filename, championship_events, args.tournament, "PPA Tour - Championships")
     else:
-        # Default behavior: write all specialized files
-        if args.debug:
-            print(f"Creating all specialized calendar files from {len(events)} total events")
-        write_all_ics_files(args.output, events, args.tournament, args.debug)
+        # Generate broadcaster-specific files if any broadcaster flags are set
+        broadcasters = ['PickleballTV', 'Tennis Channel', 'FS1', 'FS2']
+        broadcaster_flags = [args.pickleballtv, args.tennis_channel, args.fs1, args.fs2]
+
+        broadcaster_filenames = {
+            'PickleballTV': 'pickleballtv',
+            'Tennis Channel': 'tennis-channel',
+            'FS1': 'fs1',
+            'FS2': 'fs2'
+        }
+
+        for i, broadcaster in enumerate(broadcasters):
+            if broadcaster_flags[i]:
+                filtered_events = filter_by_broadcaster(events, broadcaster)
+                if filtered_events:
+                    filename_suffix = broadcaster_filenames.get(broadcaster, broadcaster.lower())
+                    output_filename = f"{os.path.splitext(args.output)[0]}-{filename_suffix}.ics"
+                    calendar_title = f"PPA Tour - {broadcaster}"
+                    write_ics_file(output_filename, filtered_events, args.tournament, calendar_title)
+                elif args.debug:
+                    print(f"No events found for {broadcaster}, skipping {output_filename}")
+
+        # If no specific broadcaster or championship flags are set, write all files
+        if not any(broadcaster_flags) and not args.championships_only:
+            if args.debug:
+                print(f"Creating all specialized calendar files from {len(events)} total events")
+            write_all_ics_files(args.output, events, args.tournament, args.debug)
+        elif args.championships_only:
+            # Championships-only was handled above, but ensure write_all_ics_files isn't called unnecessarily
+            pass
+        elif any(broadcaster_flags):
+             # If only broadcaster flags were set, we've already handled those.
+             # We might still want to create the main ppa.ics file if desired,
+             # but the current logic prioritizes specific files.
+             # For now, we'll assume that if specific flags are set, those are the desired outputs.
+             pass
+
 
 
 if __name__ == "__main__":
