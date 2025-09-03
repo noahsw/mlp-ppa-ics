@@ -1,0 +1,39 @@
+Fetching schedule from: https://www.ppatour.com/schedule/
+Attempting to fetch: https://www.ppatour.com/schedule/
+HTTP response status: 200
+Response headers: {'Connection': 'close', 'Content-Length': '30999', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer-when-downgrade', 'x-fw-version': '5.0.0', 'content-encoding': 'gzip', 'content-type': 'text/html; charset=UTF-8', 'link': '<https://www.ppatour.com/wp-json/>; rel="https://api.w.org/"', 'x-xss-protection': '1', 'x-fw-hash': 'r445iy6719', 'x-fw-dynamic': 'TRUE', 'x-fw-server': 'Flywheel/5.1.0', 'Server': 'Flywheel/5.1.0', 'X-Cacheable': 'YES', 'Fastly-Restarts': '1', 'Accept-Ranges': 'bytes', 'Date': 'Wed, 03 Sep 2025 00:40:30 GMT', 'X-Served-By': 'cache-chi-klot8100064-CHI, cache-chi-kigq8000091-CHI', 'X-Cache': 'MISS, HIT', 'X-Cache-Hits': '0, 0', 'X-Timer': 'S1756860030.147236,VS0,VE4', 'Vary': 'Accept-Encoding', 'X-FW-Serve': 'TRUE', 'X-FW-Static': 'NO', 'X-FW-Type': 'VISIT'}
+Raw content length: 30999 bytes
+Content is gzip compressed, decompressing...
+Decompressed content length: 198787 bytes
+Successfully decoded as UTF-8
+Final content length: 198774 characters
+Schedule HTML fetched successfully: 198774 characters
+⚠ HTML may be invalid or corrupted
+First 200 characters: '\n<!DOCTYPE html>\n<html lang="en-US">\n\n\t<head>\n\t\t<meta charset="UTF-8" />\n<script>\nvar gform;gform||(document.addEventListener("gform_main_scripts_loaded",function(){gform.scriptsLoaded=!0}),document.a'
+Found 229 tournament mentions
+  1: tournament schedule of the PPA Tour, comprising 25 tour stops throughout the United States." />...
+  2: tournament schedule of the PPA Tour, comprising 25 tour stops throughout the United States." />...
+Found 33 tournament links
+  1: href="https://pickleballtournaments.com/search?center_lat=32.7889&#038;page=1&#038;limit=25&#038;map...
+  2: href="https://www.ppatour.com/tournament/2025/cincinnati-slam/"...
+Found 22 PPA tournament URLs
+  1: ppatour.com/tournament...
+  2: ppatour.com/tournament...
+Found 188 tournament CSS classes
+  1: class="block tournament-schedule"...
+  2: class="tournament-schedule__holder"...
+Found 33 tournament link tags
+  1: <a  class="button button--primary-dark" href="https://pickleballtournaments.com/search?center_lat=32...
+  2: <a  class="button button--tertiary button--icon-right" href="https://www.ppatour.com/tournament/2025...
+Found tournament URL: https://www.ppatour.com/tournament/2025/2025-orlando-fl/
+Attempting to fetch: https://www.ppatour.com/tournament/2025/2025-orlando-fl/
+HTTP response status: 200
+Response headers: {'Connection': 'close', 'Content-Length': '38098', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer-when-downgrade', 'x-fw-version': '5.0.0', 'content-encoding': 'gzip', 'content-type': 'text/html; charset=UTF-8', 'link': '<https://www.ppatour.com/wp-json/>; rel="https://api.w.org/"', 'x-xss-protection': '1', 'x-fw-hash': 'r445iy6719', 'x-fw-dynamic': 'TRUE', 'x-fw-server': 'Flywheel/5.1.0', 'Server': 'Flywheel/5.1.0', 'X-Cacheable': 'YES', 'Fastly-Restarts': '1', 'Accept-Ranges': 'bytes', 'Date': 'Wed, 03 Sep 2025 00:40:30 GMT', 'X-Served-By': 'cache-chi-kigq8000039-CHI, cache-chi-kigq8000063-CHI', 'X-Cache': 'MISS, HIT', 'X-Cache-Hits': '0, 0', 'X-Timer': 'S1756860030.297169,VS0,VE2', 'Vary': 'Accept-Encoding', 'X-FW-Serve': 'TRUE', 'X-FW-Static': 'NO', 'X-FW-Type': 'VISIT'}
+Raw content length: 38098 bytes
+Content is gzip compressed, decompressing...
+Decompressed content length: 250692 bytes
+Successfully decoded as UTF-8
+Final content length: 250665 characters
+Extracted tournament name: 2025 Orlando Fl
+Found 0 events:
+Error: Process completed with exit code 1.

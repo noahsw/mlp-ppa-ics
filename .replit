@@ -27,3 +27,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python make_mlp_ics_multi.py --debug"
+
+[agent]
+expertMode = true

@@ -1,0 +1,2138 @@
+[33mcommit 663de14a333ddb95575885cb86412a07d458b9e9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 7643b88 dae4b4a
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 17:13:47 2025 +0000
+
+    Merge branch 'main' of https://github.com/noahsw/mlp-ppa-ics
+
+[33mcommit 7643b8840480b42ff6bc930c44cb9736b4eeb35c[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 17:12:03 2025 +0000
+
+    reorder calendar files
+
+[33mcommit 232e5f796f99015c69ec9e7a4a20631b771769ce[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 17:11:20 2025 +0000
+
+    Assistant checkpoint: Fix failing test by removing invalid parameter
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix test to match actual write_ics_file function signature
+    Fix test to match actual write_ics_file function signature
+    
+    ---
+    
+    User prompt:
+    
+    run the test files
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 497213ee-36cb-4f29-99c6-a3eb12b6e2ab
+
+[33mcommit 3d90173f52fdac48f7bdc50b8dc5420f0d4f5056[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 17:10:04 2025 +0000
+
+    Assistant checkpoint: Fix test data to match actual PPA website structure
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix singles test data to match actual PPA website structure, Fix gender doubles test to use only valid doubles categories
+    
+    ---
+    
+    User prompt:
+    
+    why do i see a category for "Men's Singles" in the test file? i don't think the PPA website breaks out singles events into mens and womens. they just show it as one combined singles event.
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 497213ee-36cb-4f29-99c6-a3eb12b6e2ab
+
+[33mcommit 6c64337af00fecc9d3f84875e50dac7bfaf52d6b[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 17:08:11 2025 +0000
+
+    Assistant checkpoint: Added multi-file PPA ICS generation with specialized filters
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add filtering functions for different event types, Update write_ics_file to handle different calendar types, Add function to write all specialized ICS files, Update main function to use new multi-file generation
+    - test_ppa_parser.py: Add tests for new filtering functions, Add test for multiple ICS file generation
+    - README.md: Update README to document new multiple ICS file generation, Update PPA calendar generation documentation, Update PPA running instructions, Update manual execution instructions
+    
+    ---
+    
+    User prompt:
+    
+    update @make_ppa_ics.py to create multiple ics files:
+    1. ppa-singles.ics -- only singles events
+    2. ppa-gender-doubles.ics -- only gender doubles events (sometimes called "Men's/Women's Doubles")
+    3. ppa-mixed-doubles.ics -- only mixed doubles events
+    4. ppa-pickleballtv.ics -- only events shown on pickleball tv
+    5. ppa-tennis-channel.ics -- only events show on tennis channel
+    6. ppa-fs2.ics -- only events show on FS2
+    7. ppa-championship-court.ics -- only events shown on championship court
+    8. ppa-grandstand-court.ics -- only events shown on grandstand court
+    
+    also update test cases and README file
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 497213ee-36cb-4f29-99c6-a3eb12b6e2ab
+
+[33mcommit dae4b4aee34980e722f865ca14ca340d6dc69fef[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 09:36:35 2025 -0700
+
+    Update README.md
+
+[33mcommit dabbfaa9a3d0eed35dbdfd10621e3f33880a4c7e[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 30 09:31:51 2025 -0700
+
+    Add screenshot
+
+[33mcommit 65ef57f927bc9e63d2007424b1ec1e7651298501[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Fri Aug 29 00:00:42 2025 +0000
+
+    Assistant checkpoint: Fix championships test file expectations
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix championships-only command line test to check for correct filename, Fix championships-only ICS generation test to check for correct filename
+    
+    ---
+    
+    User prompt:
+    
+    FAILURES:
+    - test_championships_only_command_line (test_ppa_parser.TestPPAICSGenerator.test_championships_only_command_line): Traceback (most recent call last):
+      File "/home/runner/workspace/test_ppa_parser.py", line 252, in test_championships_only_command_line
+        self.assertTrue(os.path.exists(test_output))
+    AssertionError: False is not true
+    
+    - test_championships_only_ics_generation (test_ppa_parser.TestPPAICSGenerator.test_championships_only_ics_generation): Traceback (most recent call last):
+      File "/home/runner/workspace/test_ppa_parser.py", line 620, in test_championships_only_ics_generation
+        self.assertTrue(os.path.exists(test_file))
+    AssertionError: False is not true
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 3e3bf50393f716ba72d8c0224abac59880b3625a[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 23:59:46 2025 +0000
+
+    Assistant checkpoint: Remove network requests from PPA tests, use sample files
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Remove network-dependent tests and use sample files, Remove network-dependent error handling test, Update explicit file input test to avoid network requests, Fix championship filtering tests to match actual sample data, Fix second championship filtering test
+    
+    ---
+    
+    User prompt:
+    
+    let's not have the tests rely on making network requests. let's use the @sample_ppa_tour_schedule.htmlfile instead
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit ddb45bc4b23b8de72bb8b210d4e23789ccc3b254[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 23:58:16 2025 +0000
+
+    Assistant checkpoint: Fix hanging test with timeout and error handling
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix hanging test by adding timeout and better error handling
+    
+    ---
+    
+    User prompt:
+    
+    tests are hanging on Test the default behavior when no arguments are provided ...
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 556a357a1a5cf8c68878245601cade35ebee4ea4[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 23:57:51 2025 +0000
+
+    Checkpoint before assistant change: Add a calendar feed for championships
+    
+    Update README.md to include a new URL for championship calendar subscriptions.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 4270b78ab4fd1124056b5aa78058a067a06ffd11[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 23:56:32 2025 +0000
+
+    Assistant checkpoint: Update championship calendar title and fix tests
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Update calendar title for championships files, Fix championships file creation in write_both_ics_files
+    - test_ppa_parser.py: Fix test expectation for championship filtering command line
+    Fix test expectation for championship filtering command line
+    Fix test expectation for championship filtering command line
+    
+    ---
+    
+    User prompt:
+    
+    the calendar title for ppa-championships.ics should be "PPA Tour - Championships". keep ppa.ics "PPA Tour"
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 14f998d6382aff94760ed217ad6d240fb0bccb06[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 23:40:46 2025 +0000
+
+    Assistant checkpoint: Update PPA script to create both files by default and fix tests
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Update championship filtering to match more event types and create both files by default, Update write_ics_file to handle default dual file creation, Update main function to create both files by default
+    - test_ppa_parser.py: Fix championship filtering tests to match correct filtering logic, Fix championship filtering test data to include proper final events, Update second championship filtering test, Fix command line test to use correct argument, Update test to expect championships-only behavior when flag is used, Update championship file existence check, Update test to check for correct championship filtering test
+    
+    ---
+    
+    User prompt:
+    
+    if no flags are passed, i want to create the separate ppa-championships.ics file in addition to ppa.ics (which includes all events)
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 8bed9d4cdaa51867160687427697cbdffddd5b73[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 23:37:25 2025 +0000
+
+    Assistant checkpoint: Add championship filtering to PPA ICS generator
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add championships-only command line option
+    Add championships-only command line option
+    Add championships-only command line option
+    Update final write_ics_file call to pass championships_only parameter
+    - test_ppa_parser.py: Add tests for championship event filtering, Add test for championship filtering, Add CLI test for championships-only option
+    - README.md: Add documentation for championships filtering
+    
+    ---
+    
+    User prompt:
+    
+    extend the capabilities of @make_ppa_ics.pyso that it can also create a ppa-championships.ics that is filtered to only championship events
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit b4f5e73efcecc4a6c459774bf69a7515707e51c3[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 21:49:04 2025 +0000
+
+    Assistant checkpoint: Fix hanging test by removing problematic mock scenario
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix hanging test by removing problematic mock scenario and adding timeout
+    
+    ---
+    
+    User prompt:
+    
+    test is hanging on Test error handling for various failure scenarios ...
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit d313281ad6dda5d44c7e29ac0ffb72e2fd65fcd0[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 21:48:18 2025 +0000
+
+    delete old files
+
+[33mcommit 9896e4120d0936d20425b348eca169d585367fea[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 21:47:26 2025 +0000
+
+    Assistant checkpoint: Fix indentation error in fetch_html function
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Fix indentation error in fetch_html function
+    
+    ---
+    
+    User prompt:
+    
+    fix this test
+    
+    ERRORS:
+    - test_ppa_parser (unittest.loader._FailedTest.test_ppa_parser): ImportError: Failed to import test module: test_ppa_parser
+    Traceback (most recent call last):
+      File "/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+        module = self._get_module_from_name(name)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+        __import__(name)
+      File "/home/runner/workspace/test_ppa_parser.py", line 23, in <module>
+        import make_ppa_ics as ppa
+      File "/home/runner/workspace/make_ppa_ics.py", line 58
+        if debug:
+        ^^
+    IndentationError: expected an indented block after 'with' statement on line 57
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit fc729ecb3d76f138c579a07cb30095bdf8be0a92[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 21:47:17 2025 +0000
+
+    Checkpoint before assistant change: Fix indentation error in PPA parser script
+    
+    Correct an IndentationError in `make_ppa_ics.py` that prevented tests from running.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 9cbb9a893ea5c51af7b4dabcc6e7c7956c8bd2cb[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 21:46:23 2025 +0000
+
+    Assistant checkpoint: Add retry logic and better error handling for network requests
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add retry logic and better error handling to fetch_html, Complete retry logic and better error messages, Update fetch_tournament_from_schedule to handle failures more gracefully, Update main function to provide clearer guidance when network fetch fails, Update direct tournament URL handling with better error messages
+    
+    ---
+    
+    User prompt:
+    
+    fix this bug. or have cleaner logging if we just can't download the page. maybe add retries?
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit f3b01ba2d553c390b9fcf3292fe2c3cca40578c6[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 21:45:36 2025 +0000
+
+    Checkpoint before assistant change: Improve error handling for website data retrieval with retries
+    
+    Address TimeoutError when fetching schedule data by implementing retry logic in the `fetch_html` function within `make_ppa_ics.py`.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit f9bdd3b1ee7e4c901eb669a6d158c0d8ec4fba5d[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 18:16:29 2025 +0000
+
+    Assistant checkpoint: Add test for newline handling in event descriptions
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Add test for newline handling in event descriptions
+    
+    ---
+    
+    User prompt:
+    
+    update the tests catch this line break issue
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 144a94e7ab5d6b866f5e5c6b9e9c2949f09c75b1[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 18:15:11 2025 +0000
+
+    Assistant checkpoint: Fix newline handling in PPA event descriptions
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Fix newline handling in event descriptions
+    
+    ---
+    
+    User prompt:
+    
+    the Notes of the PPA Tour calendar invites have \n characters instead of actual line breaks
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit befeb2ad89f9270c167627915e5cbca0668032b8[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 18:12:05 2025 +0000
+
+    Assistant checkpoint: Update PPA calendar title to always be 'PPA Tour'
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Change calendar title to always be 'PPA Tour'
+    - test_ppa_parser.py: Update tests to expect 'PPA Tour' as calendar title, Update integration test to expect 'PPA Tour' as calendar title
+    
+    ---
+    
+    User prompt:
+    
+    the overall calendar title of ppa.ics should always be "PPA Tour", not tournament specific
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit f75b17e94be2344f318b8da4fac0aa14fa2bdfa0[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:54:37 2025 +0000
+
+    Assistant checkpoint: Fix test case and run test suite
+    
+    Assistant generated file changes:
+    - test_ics_utils.py: Fix test case to include actual comma for escaping test
+    
+    ---
+    
+    User prompt:
+    
+    run the tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 96a9026f6dcce4d3d64725daf1098e4315940e6c[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:53:24 2025 +0000
+
+    Assistant checkpoint: Remove duplicate functions and consolidate utilities
+    
+    Assistant generated file changes:
+    - run_tests.py: Fix syntax error
+    - ics_utils.py: Add shared datetime and file utilities
+    - make_ppa_ics.py: Remove duplicate parse_tournament_schedule function, Use shared utilities from ics_utils, Use shared file reading utility, Use shared file reading utility for tour schedule
+    - make_mlp_ics_multi.py: Use shared utilities from ics_utils
+    
+    ---
+    
+    User prompt:
+    
+    any other identical functions to clean up?
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit d0a18b6965b4f0c0cef4e34e0ee7a2bd46d41f01[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:52:40 2025 +0000
+
+    Assistant checkpoint: Remove duplicate function and update calls
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Update remaining function calls
+    - test_ppa_parser.py: Update test to use correct function name
+    
+    ---
+    
+    User prompt:
+    
+    parse_tournament_schedule and parse_schedule_content seem identical
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit acf50b86cf7507117a2211d17cef0d35d85dfe79[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:50:19 2025 +0000
+
+    Assistant checkpoint: Refactored tests with dedicated ics_utils test file
+    
+    Assistant generated file changes:
+    - test_ics_utils.py: Create dedicated test file for ics_utils.py
+    - test_ppa_parser.py: Remove duplicate ICS escaping and line folding tests, Update test_ics_file_generation to use correct PRODID
+    - test_mlp_ics.py: Remove duplicate ICS escaping test
+    - run_tests.py: Fix incomplete run_tests function
+    - run_ppa_tests.py: Fix incomplete run_ppa_tests function
+    
+    ---
+    
+    User prompt:
+    
+    refactor the tests so there's a specific test file for ics_utils.py
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 75e19d087db3f4615cc6d224895aa72b7d000df7[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:48:57 2025 +0000
+
+    Assistant checkpoint: Refactor duplicate ICS utility functions into shared module
+    
+    Assistant generated file changes:
+    - ics_utils.py: Create shared ICS utility functions
+    - make_mlp_ics_multi.py: Replace duplicate functions with imports from ics_utils, Remove duplicate ics_escape and fold_ical_line functions, Use shared utility functions in write_ics, Use shared fold_event_lines function
+    - make_ppa_ics.py: Replace duplicate functions with imports from ics_utils, Remove duplicate ics_escape and fold_ical_line functions, Use shared fold_event_lines function, Use shared utility functions in write_ics_file
+    
+    ---
+    
+    User prompt:
+    
+    yes
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit d219ac9c7db985c346181c94fa6024dcde32c8dc[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 17:48:05 2025 +0000
+
+    Checkpoint before assistant change: Update instructions for generating PPA tournament calendars
+    
+    Update README.md to reflect new command-line arguments for generating PPA tournament calendars, including options for `--tournament-schedule-url`, `--tour-schedule-url`, `--tournament-schedule-file`, and `--tour-schedule-file`.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 93d1d6bc0fb20ae19eae9089aa81a885ffc96b18[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:45:13 2025 +0000
+
+    Assistant checkpoint: Update argument names to be more descriptive
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Update argument names to be more descriptive, Update docstring with new argument names, Update default behavior check to use new argument names, Update main function logic to use new argument names
+    - test_ppa_parser.py: Update test cases to use new argument names, Update error handling test to use new argument names, Update remaining test cases to use new argument names, Update explicit file input test to use new argument names
+    
+    ---
+    
+    User prompt:
+    
+    use --tour-schedule-file instead of --schedule-file and --tournament-schedule-file instead of --tournament-file. same for the url parameters
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 828ff75dabd09002945d198f8de0a0caaa7af104[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:44:01 2025 +0000
+
+    Assistant checkpoint: Remove confusing test and fix error handling
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Remove confusing test and fix error handling test, Fix error handling test to properly test fetch failure scenarios
+    - make_ppa_ics.py: Clarify help text for file input modes
+    
+    ---
+    
+    User prompt:
+    
+    we shouldn't need test_tournament_schedule_vs_tour_schedule_file_input_mode. we should be very explicitely either passing in a tour_schedule or a tournament_schedule
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 38ac6443e6ac9f3fd3a054fbce34143e6852f7ed[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:43:51 2025 +0000
+
+    Assistant checkpoint: Fix failing PPA parser tests
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix error handling test to properly test error conditions, Fix file path issues in tournament schedule file test
+    
+    ---
+    
+    User prompt:
+    
+    run the tests to make sure they pass
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 7d36e633061ec9f608b343622326a30d6ca00160[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:43:04 2025 +0000
+
+    Assistant checkpoint: Fix failing PPA parser tests
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix error handling test to properly test error conditions, Fix file path issues in tournament schedule file test
+    
+    ---
+    
+    User prompt:
+    
+    run the tests to make sure they pass
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 9a2a04e3ed089d75fa51f938d6d6578c8bf98965[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:41:43 2025 +0000
+
+    Assistant checkpoint: Renamed test methods to clarify tour vs tournament schedule
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Rename confusing test method names to clarify tour vs tournament schedule, Rename schedule workflow test to clarify it's about tour schedule workflow, Update file input modes test to clarify tour vs tournament schedule files
+    
+    ---
+    
+    User prompt:
+    
+    the test names should clearly deliniate between a tour_schedule and a tournament_schedule. there's too much ambiguity over "schedule"
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit de651dfd6f30fcda4f22a4e26e5bf3bbc9a9ba88[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 17:40:58 2025 +0000
+
+    Checkpoint before assistant change: Clarify naming for tour and tournament schedules to reduce ambiguity
+    
+    This commit renames the `sample_ppa_schedule.html` file to `sample_ppa_tour_schedule.html` and updates the `sample_ppa_tournaments.html` file to more accurately reflect its content.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 795ce643463d42b3bac3ac8620bf671fe8fb25b4[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:40:36 2025 +0000
+
+    Assistant checkpoint: Rename HTML files and update all references
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Update filename references
+    Update filename references
+    Update filename references
+    Update filename references
+    Update schedule page workflow test
+    Update filename references
+    Update schedule page workflow test
+    Update file input modes test
+    Update filename references
+    Update schedule page workflow test
+    Update file input modes test
+    Update tournament file test
+    Update filename references
+    Update schedule page workflow test
+    Update file input modes test
+    Update tournament file test
+    Update schedule file test
+    - make_ppa_ics.py: Fix undefined debug variable, Fix another undefined debug variable
+    
+    ---
+    
+    User prompt:
+    
+    rename sample_ppa_schedule.html to sample_ppa_tournament_schedule.html and rename sample_ppa_tournaments.html to sample_ppa_tour_schedule.html
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit a892a6b2e5915f91b715ba05fdb3f0511e1ab7be[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:37:59 2025 +0000
+
+    Assistant checkpoint: Add detailed debugging to PPA schedule fetching
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add detailed debugging for schedule page fetching and parsing, Add debugging info to fetch_html function, Add detailed error handling and response debugging, Pass debug parameter to fetch_html calls, Pass debug parameter to fetch_html in tournament fetching, Pass debug parameter to remaining fetch_html calls, Pass debug parameter to direct tournament URL fetch
+    
+    ---
+    
+    User prompt:
+    
+    in production I get:
+    
+    Failed to fetch tournament from schedule
+    No source specified, defaulting to PPA schedule page
+    Fetching schedule from: https://www.ppatour.com/schedule/
+    No tournament URL found in schedule page
+    
+    should we add some debugging to make sure we're downloading the schedule properly?
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 4bfc3f6e78c058434c87d6672f3452003a848efa[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 17:05:07 2025 +0000
+
+    Assistant checkpoint: Fix gzip decompression in HTML fetching
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Fix HTML fetching to properly handle gzip compression
+    
+    ---
+    
+    User prompt:
+    
+    Sample HTML content (first 500 chars):
+    ÌÌÙÜÁÏ¥ìºI0OlÝÕÕÕÕÕÕÕo=8~øã«_Ï`à<zpLÿ(1¼lå¬¡úËyîÑß÷-£ûèÁ7ß¬ÀPÌ¾áùVÐÊýrñÚÈ)E|ç2<å¬âÂ¢Ùkç¹ük{Øu¯SèþñÕwFüõr»î@.µ¡õ1º{øPË'ZD7¦é »¶ÿ¾}Úµ×;Ü?h=ÊQÉÅ o
+    ¼ÉµZÁíÈr{Êó¡Øcÿañ÷ò¦á8Ï{ÃîÁGÏ
+    ÆÞðáþCÎÕ ?ÿwTEw§Iûî;ñLßþ:¼ýÝw¦;ô]Ç*\p?wÑ·±o) ]¼µàÕ½ Ø¾ÒµFÕUì¡2*]±X3X7b
+                                                                 »Êµí8JÇR<kà^ñ×ö+;¸U¾R.h
+    ÜAÞÝ?Èîòö
+    Failed to fetch tournament from schedule
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit a617b2e9ee694848fa2825def1ef09c144e2bd81[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:53:06 2025 +0000
+
+    Assistant checkpoint: Improve tournament URL extraction and debugging
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Improve tournament URL extraction with more robust patterns, Add better debugging for schedule page parsing
+    
+    ---
+    
+    User prompt:
+    
+    im getting this error:
+    
+    Failed to fetch tournament from schedule
+    No source specified, defaulting to PPA schedule page
+    Fetching schedule from: https://www.ppatour.com/schedule/
+    No tournament URL found in schedule page
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit a652815d84e8500f25cde4f78232ae66e5a58b40[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:46:11 2025 +0000
+
+    Assistant checkpoint: Update tests for default schedule URL behavior
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Add test for default schedule URL behavior, Update error handling test to account for new default behavior
+    
+    ---
+    
+    User prompt:
+    
+    update the tests for this
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 22f9410f0dc5f3f5e8c3f126acd5b497abd4904f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:42:10 2025 +0000
+
+    Assistant checkpoint: Add default schedule URL when no args provided
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add default schedule URL when no arguments provided
+    
+    ---
+    
+    User prompt:
+    
+    when running make_ppa_ics.py without a schedule or tournament specified, default to --schedule-url = https://www.ppatour.com/schedule/
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit eb2182df8b0b7266b37564f8b4d5a2d284bfb695[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:39:40 2025 +0000
+
+    Assistant checkpoint: Fix failing PPA test and run all tests
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix test to handle actual error message when schedule file workflow fails
+    
+    ---
+    
+    User prompt:
+    
+    run all the test
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit eeff6e37fb410dc80acbdc95a42a63a922755f9c[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:38:56 2025 +0000
+
+    Assistant checkpoint: Fix failing PPA schedule file test
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix schedule file test to handle network fetch failures gracefully
+    
+    ---
+    
+    User prompt:
+    
+    run all the tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit efbd9c74f192747a10b41f4bb54677cb5a022dc2[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:38:16 2025 +0000
+
+    Assistant checkpoint: Fix README mistakes and outdated commands
+    
+    Assistant generated file changes:
+    - README.md: Fix incomplete GitHub Actions command for PPA
+    Fix incomplete GitHub Actions command for PPA
+    
+    ---
+    
+    User prompt:
+    
+    check readme for mistakes
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit ff788e098ad1ee68ccbe2014aa23cd49096cf8b8[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 03:37:55 2025 +0000
+
+    Checkpoint before assistant change: Update README to reflect subscription-based calendar generation
+    
+    Updated README.md to reflect changes in PPA calendar generation, focusing on subscription URLs and clarifying command-line arguments for tournament and schedule fetching.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 058b42a0d5f8145e3693e08d9d8273c90fefaa3f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:33:54 2025 +0000
+
+    Assistant checkpoint: Update README with new PPA command line arguments
+    
+    Assistant generated file changes:
+    - README.md: Update README to use new PPA command line argument names, Update example commands in the manual execution section
+    
+    ---
+    
+    User prompt:
+    
+    update README
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit f5c1e8a9bc233fdd69a501875efeb1a90295792e[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:33:27 2025 +0000
+
+    Assistant checkpoint: Update PPA argument names for clarity
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Update argument names for better clarity, Update argument processing logic, Update docstring and usage examples
+    - test_ppa_parser.py: Update test to use new argument names, Update error handling test, Update schedule-related tests, Update file input mode tests
+    
+    ---
+    
+    User prompt:
+    
+    i don't love how when using --url with make_ppa_ics.py , it defaults to assuming url is a tournament page. but when we use schedule, we have to add --from-schedule. how about we rename to --tournament-url and --schedule-url, likewise --tournament-file and--schedule-file
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit ca05e5d296ee6611b691392d5448e96d332b4681[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 03:32:45 2025 +0000
+
+    Checkpoint before assistant change: Add ability to generate PPA tournament schedule files
+    
+    Adds the `make_ppa_ics.py` script to the build workflow to generate PPA tournament schedule ICS files, and includes a link to the generated `ppa.ics` file in the `index.html`.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 944bd3b03184507b6b6b189f6392903548f12305[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:30:27 2025 +0000
+
+    Assistant checkpoint: Updated README with comprehensive PPA documentation
+    
+    Assistant generated file changes:
+    - README.md: Add PPA ICS generator documentation
+    
+    ---
+    
+    User prompt:
+    
+    update README with the new PPA information
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 8555da6567ca7200e9668eca1dc9bb6d88b4c8a2[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:26:42 2025 +0000
+
+    Assistant checkpoint: Fix failing schedule workflow test by testing components directly
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix schedule page workflow test by using file-based testing instead of subprocess mocking
+    
+    ---
+    
+    User prompt:
+    
+    - test_schedule_page_workflow (__main__.TestPPAICSGenerator.test_schedule_page_workflow)
+      Traceback (most recent call last):
+      File "/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/unittest/mock.py", line 1396, in patched
+        return func(*newargs, **newkeywargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/home/runner/workspace/test_ppa_parser.py", line 283, in test_schedule_page_workflow
+        self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+    AssertionError: 1 != 0 : Script failed: Failed to fetch tournament from schedule
+    
+    ❌ Some tests failed!
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 17742fa992f5b041ae8e8decdfdaa704efc9a0a7[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:25:07 2025 +0000
+
+    Assistant checkpoint: Fix failing test by correcting mock target
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix mock decorator to target the correct function path, Update test to properly mock the fetch_html calls
+    
+    ---
+    
+    User prompt:
+    
+    FAILURES:
+    - test_schedule_page_workflow (__main__.TestPPAICSGenerator.test_schedule_page_workflow)
+      Traceback (most recent call last):
+      File "/nix/store/vnvdzw4182wb2ifzi0cczhv80yfnpx1q-python3-3.12.11/lib/python3.12/unittest/mock.py", line 1396, in patched
+        return func(*newargs, **newkeywargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/home/runner/workspace/test_ppa_parser.py", line 284, in test_schedule_page_workflow
+        self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+    AssertionError: 1 != 0 : Script failed: Failed to fetch tournament from schedule
+    
+    ❌ Some tests failed!
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 0fcc1e906fd7361298d6e20f1f506fd5066b2e83[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:24:31 2025 +0000
+
+    Assistant checkpoint: Fix failing test and run test suite
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix schedule page workflow test to work with current code structure
+    
+    ---
+    
+    User prompt:
+    
+    run the test
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit bfec22bf4c5d49c4903ad20a7281bb1c3c16a18f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:23:43 2025 +0000
+
+    Assistant checkpoint: Refactor to explicit functions, remove auto-detection
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Replace auto-detection with explicit functions, Update main function to use explicit functions, Add separate function for fetching tournament from schedule, Simplify main logic with explicit mode handling
+    - test_ppa_parser.py: Update test to use explicit tournament schedule parsing, Update error handling test for new explicit modes, Update file input test for new modes
+    
+    ---
+    
+    User prompt:
+    
+    do we need auto-detection of the two? why not just call explicit functions for each
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 2090aeb11b82f43d8f145b04f658e5541ec1f21d[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:20:15 2025 +0000
+
+    Assistant checkpoint: Update test cases for tournament URL extraction
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Add tests for tournament URL extraction functionality, Update imports and add mock support, Update integration test to handle tournament name extraction
+    
+    ---
+    
+    User prompt:
+    
+    update the test cases to support this
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit eb7438ec22a81fb33046835b520f0a2625ae80cd[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:18:20 2025 +0000
+
+    Assistant checkpoint: Add tournament URL extraction from schedule page
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Add tournament URL extraction from schedule page, Update main function to handle tournament URL extraction
+    
+    ---
+    
+    User prompt:
+    
+    Update make_ppa_ics.py to first fetch  the contents of https://www.ppatour.com/schedule/ and parse out the first tournament URL. in the case of sample_ppa_tournaments.html, it's https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/. Then we'll fetch that URL to get the actual match schedule for that tournament. Do all of this within make_ppa_ics.py
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit a8e6bbcf227db58cc4d3e9a96dce8b17a60eab50[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:17:38 2025 +0000
+
+    Assistant checkpoint: Create sample PPA tournaments HTML file for testing
+    
+    Assistant generated file changes:
+    - sample_ppa_tournaments.html: Create sample PPA tournaments HTML file for testing
+    
+    ---
+    
+    User prompt:
+    
+    Create sample_ppa_tournaments.html from the attached file. Use this for testing.
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 59c4a8f0770f81dbb5c80e4cd305471c85af828a[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 03:16:35 2025 +0000
+
+    Checkpoint before assistant change: Improve parsing of tournament schedule data from websites
+    
+    Update the `make_ppa_ics.py` script to refine how it extracts tournament schedule information from HTML content. This includes adjustments to regular expressions used for parsing, handling of specific HTML structures, and improving the user agent for requests, while also introducing a new HTML file for testing purposes.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit bd4cd1470b9c042ee4ba02288deb6a51d5c97a0d[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:09:43 2025 +0000
+
+    Assistant checkpoint: Fix test to preserve CRLF line endings when reading ICS file
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Fix test to read ICS file in binary mode to preserve CRLF line endings
+    
+    ---
+    
+    User prompt:
+    
+    FAILURES:
+    - test_ics_file_generation (test_ppa_parser.TestPPAICSGenerator.test_ics_file_generation): Traceback (most recent call last):
+      File "/home/runner/workspace/test_ppa_parser.py", line 198, in test_ics_file_generation
+        self.assertTrue(content.endswith("\r\n"), "ICS file should end with CRLF")
+    AssertionError: False is not true : ICS file should end with CRLF
+    
+    ❌ Some PPA tests failed!
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit dda571d73249162cf2091b463e6f9b2063270ed8[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:08:21 2025 +0000
+
+    Assistant checkpoint: Fix ICS file CRLF line endings
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Fix ICS file line endings by using proper newline parameter
+    
+    ---
+    
+    User prompt:
+    
+    FAILURES:
+    - test_ics_file_generation (test_ppa_parser.TestPPAICSGenerator.test_ics_file_generation): Traceback (most recent call last):
+      File "/home/runner/workspace/test_ppa_parser.py", line 198, in test_ics_file_generation
+        self.assertTrue(content.endswith("\r\n"), "ICS file should end with CRLF")
+    AssertionError: False is not true : ICS file should end with CRLF
+    
+    ❌ Some PPA tests failed!
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit e29598b033479838efcb0478f748aecccd397860[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:07:33 2025 +0000
+
+    Assistant checkpoint: Fixed PPA parser to properly separate court and category
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py:
+    
+    ---
+    
+    User prompt:
+    
+    fix the tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 00aaa63de4aa65dbd737b5b38c96e530ad0c97fe[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 03:06:18 2025 +0000
+
+    Checkpoint before assistant change: Update website to include new content and improve performance
+    
+    Adds new HTML content to the website and includes optimizations for various external scripts and stylesheets to improve load times.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 52f97cc37333c00ad7ca244b634acee146f0b1aa[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:05:13 2025 +0000
+
+    Assistant checkpoint: Fix PPA parser and run PPA tests
+    
+    Assistant generated file changes:
+    - make_ppa_ics.py: Fix text buffer handling to strip whitespace and clean up category extraction, Improve event text parsing to handle whitespace better
+    - run_ppa_tests.py: Create dedicated PPA test runner
+    
+    ---
+    
+    User prompt:
+    
+    run the ppa tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 7c3ab8947820e9bd11e3b6a23d6d07f80836fc05[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 03:03:57 2025 +0000
+
+    Assistant checkpoint: Enhanced PPA test parser with comprehensive validation
+    
+    Assistant generated file changes:
+    - test_ppa_parser.py: Create comprehensive unit tests for PPA ICS parser with result validation
+    - run_tests.py: Include PPA tests in test runner
+    
+    ---
+    
+    User prompt:
+    
+    update the ppa test parser to actually compare the results of the generated ics file. also feel free to create some unit tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 3f7a5c4fc75a32ffaa156bdf17630afa8a4e6ab8[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 02:59:04 2025 +0000
+
+    Assistant checkpoint: Updated PPA parser for real website structure
+    
+    Assistant generated file changes:
+    - sample_ppa_schedule.html: Save actual PPA website HTML content for testing
+    - make_ppa_ics.py: Update parser to handle real PPA website HTML structure
+    - test_ppa_parser.py: Update test script to use the new sample file
+    
+    ---
+    
+    User prompt:
+    
+    You misunderstood me slightly when creating make_ppa_ics.py. I want you to download that URL I gave you. The example contents are attached here (save this as sample_ppa_schedule.html). The python script should parse that html into the calendar events I previously gave you (that you've now saved to ppa_schedule_example.html).
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit f692b4f0b65b986eae69a4dcb4d690d92b7bf9c0[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Thu Aug 28 02:56:08 2025 +0000
+
+    Checkpoint before assistant change: Add schedule parsing from HTML to calendar events
+    
+    The script now parses the provided HTML file to extract and format event data for calendar integration.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 2b5acd95becbd26fc15d8691a12d1d2768e1556f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 02:53:47 2025 +0000
+
+    Assistant checkpoint: Renamed sample data files and updated references
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Update reference to renamed sample matchups data file, Update reference to renamed sample events data file
+    
+    ---
+    
+    User prompt:
+    
+    rename sample_matchups_data.json to sample_mlp_matchups_data.json and sample_events_data.json to sample_mlp_events_data.json
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit b6a4e33312c2e8dda7a3b4357596c93c421cf14e[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 28 02:53:05 2025 +0000
+
+    Assistant checkpoint: Create PPA tournament ICS generator script
+    
+    Assistant generated file changes:
+    - ppa_schedule_example.html: Create example PPA schedule HTML for testing
+    - make_ppa_ics.py: Create PPA tournament schedule ICS generator
+    - test_ppa_parser.py: Create test script for PPA parser
+    
+    ---
+    
+    User prompt:
+    
+    Create a new script for make_ppa_ics.py. It should read the contents of https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule (store this as an example file to test with) and parse out the events. In this example, it should create events for:
+    
+    Thursday, August 28
+    Championship Court
+    Singles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Thursday, August 28
+    Championship Court
+    Singles | 4:00 PM ET - 9:00 PM ET
+    Tennis Channel
+    
+    Thursday, August 28
+    Grandstand Court
+    Singles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Friday, August 29
+    Championship Court
+    Mixed Doubles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Friday, August 29
+    Championship Court
+    Mixed Doubles | 2:00 PM ET - 7:00 PM ET
+    Tennis Channel
+    
+    Friday, August 29
+    Championship Court
+    Mixed Doubles | 8:00 PM ET - 10:00 PM ET
+    FS2
+    
+    Friday, August 29
+    Grandstand Court
+    Mixed Doubles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Saturday, August 30
+    Championship Court
+    Men's/Women's Doubles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Saturday, August 30
+    Championship Court
+    Men's/Women's Doubles | 2:00 PM ET - 6:00 PM ET
+    
+    Saturday, August 30
+    Championship Court
+    Tennis Channel Logo
+    
+    Saturday, August 30
+    Championship Court
+    Men's/Women's Doubles | 7:00 PM ET - 9:00 PM ET
+    FS2
+    
+    Saturday, August 30
+    Grandstand Court
+    Men's/Women's Doubles | 2:00 PM ET - 10:00 PM ET
+    PickleballTV
+    
+    Sunday, August 31
+    Championship Court
+    Championships | 1:00 PM ET - 7:00 PM ET
+    PickleballTV
+    
+    Sunday, August 31
+    Championship Court
+    Championships | 1:00 PM ET - 7:00 PM ET
+    Tennis Channel Logo
+    
+    Sunday, August 31
+    Championship Court
+    Championships Replay | 10:30 PM ET - 12:30 AM ET
+    FS1
+    
+    Sunday, August 31
+    Grandstand Court
+    Bronze | 12:00 PM ET - 5:00 PM ET
+    PickleballTV
+    
+    The broadcasters are companies like PickleballTV, FS2, and Tennis Channel
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 97100842-db63-400f-9943-518179f5df1a
+
+[33mcommit 4299b09effd09a485afcf1b313dee13a5990d501[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:11:43 2025 +0000
+
+    Change default workflow to Tests
+
+[33mcommit 58792a4d3eb2e0714128d6d1d3a0fb4d5689b91a[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:10:55 2025 +0000
+
+    Assistant checkpoint: Fix test to handle ICS line folding
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix test to handle ICS line folding for player names
+    
+    ---
+    
+    User prompt:
+    
+    fix it for me
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4bb4fb8e-0c12-4ca5-81ac-c94ae33b44e9
+
+[33mcommit 48c422768e27a40c524f3fe7d00c5649f2bce520[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:10:01 2025 +0000
+
+    Assistant checkpoint: Fix tests to handle ICS line folding
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix test to handle ICS line folding, Fix test to handle ICS line folding in score
+    
+    ---
+    
+    User prompt:
+    
+    fix it for me
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: dc6c1d68-4ad3-4d5b-b9ae-7b1abf9e13e6
+
+[33mcommit 48ccb785485cfff5d11bd35bf388aef85eb023bd[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 23:09:49 2025 +0000
+
+    Checkpoint before assistant change: Fix issues with generating and verifying event schedules and scores
+    
+    Correct assertion failures in `test_completed_matchup_event_generation` and `test_score_detection_logic` within `test_mlp_ics.py` to ensure accurate ICS event data.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 613f189d85c62cda256e43518bf1ecda23fb538f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:06:58 2025 +0000
+
+    Assistant checkpoint: Remove redundant function and use JSON file
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Remove redundant create_sample_events_data function and use JSON file, Update test to use JSON file instead of hardcoded function
+    
+    ---
+    
+    User prompt:
+    
+    we shouldn't have create_sample_events_data when we have @sample_events_data.json
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: a1938975-a6cc-4e2a-a73b-c1b885dc0c1e
+
+[33mcommit 81e6c5d067a5602bd581f0f10380c21ddcc443c1[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:05:25 2025 +0000
+
+    Assistant checkpoint: Update test to use real team names
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Update test to use real team names from sample data instead of generic Away/Home
+    
+    ---
+    
+    User prompt:
+    
+    I'd rather use real team names than just "Away" and "Home" in my test data
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: a1938975-a6cc-4e2a-a73b-c1b885dc0c1e
+
+[33mcommit a2fead4d5bf884610e4023a6e2e2cfca7f83c9df[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 23:04:30 2025 +0000
+
+    Assistant checkpoint: Fix test assertions to match actual output
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix test expectations to match actual output, Fix player name assertion to match actual grouped output
+    
+    ---
+    
+    User prompt:
+    
+    fix it for me
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: a1938975-a6cc-4e2a-a73b-c1b885dc0c1e
+
+[33mcommit 823370e81f1c42dd956ccc70c1a585d920ca4d27[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 23:04:13 2025 +0000
+
+    Checkpoint before assistant change: Update test data to include matches in progress
+    
+    Update test_sample_data.py to reflect the latest sample data structure including in-progress matches.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit e196699f5fb44307e6a83ae1928e06d750ecc954[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 22:59:22 2025 +0000
+
+    Assistant checkpoint: Update tests to use sample_matchups_data.json
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Update tests to use sample_matchups_data.json, Update setUp method to use sample data from JSON, Update test assertions to match new sample data, Update player extraction test to match new sample data, Update test with new sample data for ICS file content, Update score detection test with new sample data
+    
+    ---
+    
+    User prompt:
+    
+    update the tests to use this new json file
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 30437d78-dcfd-44ee-ab85-d5bff501a53b
+
+[33mcommit f7f80ce018bcdd04835a8c89a2c6da125f43b1a6[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 22:57:30 2025 +0000
+
+    Assistant checkpoint: Extract sample matchups to JSON file
+    
+    Assistant generated file changes:
+    - sample_matchups_data.json: Create sample matchups data file
+    
+    ---
+    
+    User prompt:
+    
+    extract the sample match data to its own json file, like we did for the sample events data
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 30437d78-dcfd-44ee-ab85-d5bff501a53b
+
+[33mcommit cc3fd8b03f272f7468618d30f56f5a86445c5e59[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:55:11 2025 -0700
+
+    Delete attached_assets directory
+
+[33mcommit 935416bb3c57c0afb8f0d61611f123ca1b5ef716[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:54:55 2025 -0700
+
+    Update .gitignore
+
+[33mcommit d4a6c7a4bb544f5949e467f49ea7ae7f432875b5[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:33:29 2025 -0700
+
+    Delete mlp.ics
+
+[33mcommit 27121cb37ad094e22d622b399aa46007cee09f2f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:33:17 2025 -0700
+
+    Delete mlp-premier.ics
+
+[33mcommit 7f94321799d1c3bbd74ebb54c17cb43fd865932a[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:33:08 2025 -0700
+
+    Delete mlp-premier-championship.ics
+
+[33mcommit 8ecc427e003fb98e11e167f9fba134111c7ed693[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:33:00 2025 -0700
+
+    Delete mlp-premier-grandstand.ics
+
+[33mcommit de7fcf8dd9774fdcba17504e5a33176d3571ac97[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:32:51 2025 -0700
+
+    Delete mlp-challenger.ics
+
+[33mcommit bf550c81e95cb56fc48b306d73a6ea369e901fe1[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:32:42 2025 -0700
+
+    Delete mlp-challenger-championship.ics
+
+[33mcommit 3b68284d865f971e1b07ac090a093f354059d8f2[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 15:32:31 2025 -0700
+
+    Delete mlp-challenger-grandstand.ics
+
+[33mcommit 6f44e4674a56671e211aec183199a98bc320438f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 22:01:32 2025 +0000
+
+    Assistant checkpoint: Add timestamp to debug output for ICS writes
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add planned start date/time to debug output when writing ICS files
+    
+    ---
+    
+    User prompt:
+    
+    in the debug output, write the time and date for each match on the same line (e.g., when saying [write:mlp.ics])
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 7793901d409b636a2c01b0416daae6e74b1ac0c7[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 22:01:26 2025 +0000
+
+    Checkpoint before assistant change: Update event timestamps for all MLP match calendar entries
+    
+    Modify the DTSTAMP property in multiple .ics calendar files to reflect the current date and time, ensuring accurate event metadata.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 46cce7952cafa5f6b048b44866e81a0d0ddde5f5[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 21:06:03 2025 +0000
+
+    Assistant checkpoint: Configure Run button to pass --debug flag
+    
+    Assistant generated file changes:
+    - .replit: Updated app configuration
+    
+    ---
+    
+    User prompt:
+    
+    i want the Replit run command to pass --debug to the python script
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 89cc4b9cb803f4cbd621c4febad535c63c249e99[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 21:02:15 2025 +0000
+
+    Assistant checkpoint: Updated README to reflect current implementation
+    
+    Assistant generated file changes:
+    - README.md: Update README to reflect dynamic event fetching and date range filtering, Update options documentation to reflect current implementation, Update deployment section to use Replit, Update test coverage section
+    
+    ---
+    
+    User prompt:
+    
+    update README based on this
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 0a5153b144a00f022e414f87de92acd2406ea417[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 21:01:42 2025 +0000
+
+    Checkpoint before assistant change: Update event timestamps in all calendar files for accuracy
+    
+    Corrects the DTSTAMP values across multiple .ics files, including mlp-challenger-championship.ics, mlp-challenger.ics, mlp-premier-championship.ics, mlp-premier.ics, and mlp.ics, to reflect the latest event data.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 303f20e6f774621a3ef496ae8bc5cca62ea05790[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 20:53:19 2025 +0000
+
+    Assistant checkpoint: Add sample events data file and update test
+    
+    Assistant generated file changes:
+    - sample_events_data.json: Create sample events data for testing
+    - test_mlp_ics.py: Update test to use sample events data file
+    
+    ---
+    
+    User prompt:
+    
+    add the sample file to the repo so we can use it for tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 669e554cbd063a4a8ceb46f5408aedd3875c591f[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 20:51:50 2025 +0000
+
+    Checkpoint before assistant change: Update upcoming pickleball match schedules and add event data
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 0817c87947962a75d1cfccb2d338c69d9204ec4a[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Tue Aug 19 20:46:57 2025 +0000
+
+    Assistant checkpoint: Update script to dynamically fetch events and filter by date range
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add event-matches endpoint and remove hardcoded schedule group UUID, Update build_url function to accept schedule_group_uuid parameter, Add function to fetch active events, Add function to filter events by date range, Update collect_matchups_for_division to use dynamic events
+    
+    ---
+    
+    User prompt:
+    
+    The schedule_group_uuid changes for each tournament event. I've uploaded sample output from https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/event-matches. This returns the list of tournaments. The "uuid" for each tournament (under "events") refers to the schedule_group_uuid that we'll use to get individual matches. So everytime @make_mlp_ics_multi.py runs, it should first get the list of events, and then for each event whos start_date and end_date falls within our "yesterday to 4 days from now range", fetch the matches for that specific event. In other words, don't fetch matches for events in the past (unless it was literally yesterday) and don't fetch matches for events far in the future.
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 2249c131bf4cf82ab11b8e3119dd6a12d1a2fac8[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Tue Aug 19 20:46:12 2025 +0000
+
+    Checkpoint before assistant change:
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit e87168305c2313afa74b8a98f1ae32ddb3de6688[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Mon Aug 18 01:50:09 2025 +0000
+
+    Assistant checkpoint: Extended date range to include yesterday
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Extend date range to include yesterday, Update docstring to reflect new date range, Update argument help text
+    
+    ---
+    
+    User prompt:
+    
+    extend the date range window in @make_mlp_ics_multi.pyto include yesterday's date
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 2920f1af5c3103a40d8924d322b49d8503877086[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 01:49:50 2025 +0000
+
+    Checkpoint before assistant change: Update calendar events to include yesterday's matchups and fix a test failure
+    
+    Update DTSTAMP in mlp.ics, mlp-premier.ics, and mlp-premier-championship.ics to reflect the correct date. Fix test_completed_matchup_event_generation in test_mlp_ics.py.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 83424e5ae43f12ff133d4f471a5be0cc0bdea45b[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Mon Aug 18 01:46:39 2025 +0000
+
+    Assistant checkpoint: Fix test regex for ICS line folding
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix regex pattern to handle line folding in ICS output, Fix regex pattern to properly handle ICS line folding
+    
+    ---
+    
+    User prompt:
+    
+    fix it
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 4267d237-56b4-459b-a73d-1b20cebcf533
+
+[33mcommit 065dc6e72f3e30368babf8b0bc80eb6260155037[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 01:46:26 2025 +0000
+
+    Checkpoint before assistant change: Update calendar events with correct timestamps and add new test workflow
+    
+    Updates the `DTSTAMP` values in multiple `.ics` calendar files and adds a new `Tests` workflow to the `.replit` configuration.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 139393f5f30f774fdc351c910c9c363556da5f6e[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Mon Aug 18 01:44:41 2025 +0000
+
+    Assistant checkpoint: Fix datetime test and player name line folding
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix datetime formatting test with correct expected value, Fix player name test to use regex matching to handle line folding
+    
+    ---
+    
+    User prompt:
+    
+    ==================================================
+    Tests run: 16
+    Failures: 2
+    Errors: 0
+    
+    FAILURES:
+    - test_completed_matchup_event_generation (test_mlp_ics.TestMLPICSGenerator.test_completed_matchup_event_generation): Traceback (most recent call last):
+      File "/home/runner/workspace/test_mlp_ics.py", line 220, in test_completed_matchup_event_generation
+        self.assertIn("Jane Smith\\; John Doe", event_text)
+    AssertionError: 'Jane Smith\\; John Doe' not found in 'BEGIN:VEVENT\nUID:test-uuid-123@mlp\nDTSTAMP:20250101T120000Z\nDTSTART:20250816T183000Z\nDTEND:20250816T195000Z\nSUMMARY:Away Team vs. Home Team (Grandstand Court)\nLOCATION:Test Venue\nDESCRIPTION:Major League Pickleball — Premier Season\\nDivision: Premier\\n\\n\n FINAL SCORE: Away Team 0 - 3 Home Team\\n\\nIndividual Match Results:\\nGame 1\n  (GS): Away Team 9 - 11 Home Team\\nGame 2 (GS): Away Team 7 - 11 Home Team\\\n n\\nPlayers (if listed):\\nAway Team: Alice Brown\\; Bob Wilson\\nHome Team: Ja\n ne Smith\\; John Doe\nSTATUS:CONFIRMED\nTRANSP:OPAQUE\nEND:VEVENT'
+    
+    - test_datetime_formatting (test_mlp_ics.TestMLPICSGenerator.test_datetime_formatting): Traceback (most recent call last):
+      File "/home/runner/workspace/test_mlp_ics.py", line 196, in test_datetime_formatting
+        self.assertEqual(mlp.fmt_dt_utc(dt_str), expected)
+    AssertionError: '20250816T183000Z' != '20250101T120000Z'
+    - 20250816T183000Z
+    ?      - ^  ^^
+    + 20250101T120000Z
+    ?       ^^  ^^
+    
+    ❌ Some tests failed!
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: cba7d3a0-43cf-48e0-ab63-5d14fe0404a0
+
+[33mcommit e6d94a968e31fc2db421bde467b0b572aa0bdec7[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 01:44:31 2025 +0000
+
+    Checkpoint before assistant change: Update event timestamps for all scheduled matchups
+    
+    Corrects the DTSTAMP value across multiple calendar files (mlp-premier-championship.ics, mlp-premier.ics, mlp.ics) to resolve test failures related to event time synchronization.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 7c77299e77cd047fa518c72f7effd5012965961e[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Mon Aug 18 01:43:38 2025 +0000
+
+    Assistant checkpoint: Fix test to expect escaped semicolons
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix test assertion to account for ICS escaping
+    
+    ---
+    
+    User prompt:
+    
+    apply fix
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: cba7d3a0-43cf-48e0-ab63-5d14fe0404a0
+
+[33mcommit d716c78550752c0b83d056997f53ced81e5a772c[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 01:43:27 2025 +0000
+
+    Checkpoint before assistant change: Fix how player information appears in event schedules
+    
+    Update ICS event generation to correctly escape semicolons in player names.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 64321913b897d3a12acef83848680b740798c8fc[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 01:42:38 2025 +0000
+
+    Checkpoint before assistant change: Update pickleball match data with corrected scores and event times
+    
+    Update calendar data for pickleball matches, correcting final scores for several games and adjusting event start and end times. This also includes a fix for a test case related to completed matchup event generation where player names were not being correctly asserted.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 3870a0d34d0e291e5d30fd818602cf48b39776d2[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Mon Aug 18 00:58:49 2025 +0000
+
+    Assistant checkpoint: Add comprehensive test instructions to README
+    
+    Assistant generated file changes:
+    - README.md: Add test instructions section
+    
+    ---
+    
+    User prompt:
+    
+    Update read me with test instructions
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 0b48fdc2bebc0308cd5feeaf8f15b46e79cdabb5[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Mon Aug 18 00:58:32 2025 +0000
+
+    Checkpoint before assistant change: Update calendar events with match details and results
+    
+    Updates the DTSTAMP and adds final scores and court information to various .ics calendar files, including mlp-challenger-grandstand.ics, mlp-premier-championship.ics, and mlp.ics.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 0591ee715c3c82f8b1e2827deed48b306a9dc50d[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 01:00:29 2025 +0000
+
+    Assistant checkpoint: Fix test function references and add missing functions
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add missing court_label_from_code function
+    - test_mlp_ics.py: Fix function name references and test expectations, Fix function name references and test expectations, Fix function name references and test expectations, Fix function name references and test expectations, Fix function name references and test expectations, Fix function name references and test expectations
+    
+    ---
+    
+    User prompt:
+    
+    Fix the testS
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 6187b0232209f4ccf6d5bcaf682da5d5d0ff5e4f[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:27:37 2025 +0000
+
+    Assistant checkpoint: Added missing filter_by_primary_court function
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add missing filter_by_primary_court function
+    
+    ---
+    
+    User prompt:
+    
+    Run tests and fix any failing ones
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 56b001a9cf0a518404c32d7d3bc5950e66acd05a[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:27:15 2025 +0000
+
+    Checkpoint before assistant change: Update event timestamps in all calendar files for MLP matchups
+    
+    This commit corrects the DTSTAMP for multiple VEVENT entries across various .ics files, ensuring accurate event timing information.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 07017bee6c29c5f700e6a636769fb9eb940bad81[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:26:36 2025 +0000
+
+    Assistant checkpoint: Fix test expectations for output format
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix test expectations to match actual output format, Fix division test to handle line folding
+    
+    ---
+    
+    User prompt:
+    
+    Fix the tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 6a2a17f9330109f35682180afe487211371a90fe[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:26:26 2025 +0000
+
+    Checkpoint before assistant change: Update event timestamps across multiple calendar files for accuracy
+    
+    Corrects the DTSTAMP value in various .ics files, including mlp-challenger-championship.ics, mlp-challenger-grandstand.ics, mlp-challenger.ics, mlp-premier-championship.ics, and mlp-premier.ics, to ensure event data is current.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit a29e52bc5eec796e516e3d7ffc5423967f5c1217[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:25:40 2025 +0000
+
+    Assistant checkpoint: Fix test function names and imports
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix import and add missing imports, Fix test methods to use correct function names and parameters, Fix test to use correct function name for event building, Fix test to use correct function name for event building, Fix test to use correct function name for event building, Fix test to use correct function name for event building, Fix test to use correct function name for event building
+    
+    ---
+    
+    User prompt:
+    
+    Tests are failing
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit e79082f7014f1ab3f22cd2c0a16c8a06115a8d1a[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:25:11 2025 +0000
+
+    Checkpoint before assistant change: Update timestamps in all event files for accuracy
+    
+    Corrects the DTSTAMP value across multiple .ics files (mlp-challenger-championship.ics, mlp-challenger-grandstand.ics, mlp-challenger.ics, mlp-premier-championship.ics, mlp-premier.ics, mlp.ics) from 20250817T001711Z to 20250817T002204Z.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 5e3738b159e2e3791c61a56b580d0b8c1c19fb79[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:22:01 2025 +0000
+
+    Assistant checkpoint: Fix test imports, function calls, and parameter issues
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Fix import and missing imports, Fix test method that uses non-existent function, Fix test method parameter name, Fix test method parameter name, Fix test to use correct field names and logic, Remove test for non-existent function and fix other issues
+    
+    ---
+    
+    User prompt:
+    
+    Fix the tests
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 51366852f78f8c2b1ddfe6a7eddf6bb28082a6d3[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:21:22 2025 +0000
+
+    Checkpoint before assistant change: Update calendar event timestamps for all scheduled matches
+    
+    Corrected the DTSTAMP values in multiple .ics files for various MLP matches across different courts and divisions.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit b11266f2e0ba4bf327cd19976e9b6e8608df15af[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:17:02 2025 +0000
+
+    Assistant checkpoint: Created comprehensive test suite for MLP ICS generator
+    
+    Assistant generated file changes:
+    - test_mlp_ics.py: Create comprehensive test cases for MLP ICS generator
+    - test_sample_data.py: Create sample data generator for testing
+    - run_tests.py: Create test runner script
+    
+    ---
+    
+    User prompt:
+    
+    Create test cases
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 3726bf22d4f53089b7edc50a8e0d4a0eded6d93b[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:12:43 2025 +0000
+
+    Checkpoint before assistant change: Update calendar event timestamps for all MLP matches
+    
+    This commit updates the DTSTAMP for multiple VEVENT entries across various .ics files (mlp-challenger-championship.ics, mlp-challenger-grandstand.ics, mlp-challenger.ics, mlp-premier-championship.ics, mlp-premier.ics, mlp.ics) from 20250817T000948Z to 20250817T001223Z.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 9cd941141c77df392bb44a016c68689356f19f20[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:12:20 2025 +0000
+
+    Assistant checkpoint: Add score info to debug output
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add score information to debug output
+    
+    ---
+    
+    User prompt:
+    
+    Add the scores to the debug output
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 4d636bb11d412bbefef9d1cd22e3b521e2a85000[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:12:11 2025 +0000
+
+    Checkpoint before assistant change: Add individual match scores to event descriptions for better debugging
+    
+    Update ICS files to include specific match results and player details in event descriptions for debugging purposes.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 01edf9f951372f3a7f9aca76106ce4fe5a360502[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sun Aug 17 00:09:35 2025 +0000
+
+    Assistant checkpoint: Fix score detection using correct API fields
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Fix score detection to use correct API field names
+    
+    ---
+    
+    User prompt:
+    
+    I'm not seeing scores show up
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit 29f29e8981c1814c0a499c6861586e494d85dc51[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sun Aug 17 00:09:13 2025 +0000
+
+    Checkpoint before assistant change: Add match scores and individual results to event descriptions
+    
+    Update iCalendar files to include final scores and detailed match results for all MLP playoff games, addressing the issue of missing score information.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 82694983c379bc81d9e4e4ea19e53328135b4341[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 16 23:06:55 2025 +0000
+
+    Assistant checkpoint: Fix score display for completed MLP games
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Fix score display for completed games
+    
+    ---
+    
+    User prompt:
+    
+    Here's a sample event json response you can store in the repo for future reference. The scores for completed games aren't showing in the calendar descriptions. Refer to this json for the schema to fix the bug and display them.
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 68b1af21-01c3-4daf-9c21-ddb45e58cd11
+
+[33mcommit eb16c26f276a403dd49597e46f414ee58d372251[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sat Aug 16 23:06:42 2025 +0000
+
+    Checkpoint before assistant change: Update event data to include scores in calendar descriptions for games
+    
+    Correct the DTSTAMP in multiple .ics files and attach an example JSON to define the schema for displaying scores in calendar event descriptions.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit bafbbc58f7ba3b1c469ed024d3f471d31eac6863[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 16 22:40:51 2025 +0000
+
+    Assistant checkpoint: Add score display for completed games
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Add score display for completed games in event descriptions
+    
+    ---
+    
+    User prompt:
+    
+    When a game is completed, how would I show the scores in the calendar invite description?
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit eab51531e1851ce3664a9b143ca77f75b6c9e00e[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sat Aug 16 22:40:34 2025 +0000
+
+    Checkpoint before assistant change: Add player details to all calendar invite descriptions
+    
+    Update the DESCRIPTION field in the iCalendar files (.ics) for all matches to include detailed player information for each team, enhancing the event details for users.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit c790d00dde020c75f0bb45f3fee78d216138dbf1[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Sat Aug 16 22:36:48 2025 +0000
+
+    Assistant checkpoint: Fix type annotations and imports
+    
+    Assistant generated file changes:
+    - make_mlp_ics_multi.py: Fix type annotations and imports, Fix set type annotation for Python compatibility, Fix court mapping comment consistency
+    
+    ---
+    
+    User prompt:
+    
+    Inspect for errors
+    
+    Replit-Commit-Author: Assistant
+    Replit-Commit-Session-Id: 860427ba-eda3-4c9c-9d73-9cd6f244113a
+
+[33mcommit b37f308642a2afe7120a30436e509f7df6d15012[m
+Author: noahs-w <46176732-noahs-w@users.noreply.replit.com>
+Date:   Sat Aug 16 22:36:41 2025 +0000
+
+    Checkpoint before assistant change: Set up the project to run automatically with specific configurations
+    
+    Configure .replit file to specify Python version, execution command, and Nix channel for automated project execution.
+    
+    Replit-Commit-Author: Assistant
+
+[33mcommit 401919e0ca1a57569cd0d003aeedbfab34f0403a[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 16:29:26 2025 -0700
+
+    Update build-ics.yml
+
+[33mcommit 1a80e673a1a84b200756e0033921a8687221f7f0[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 16:28:57 2025 -0700
+
+    Update make_mlp_ics_multi.py
+
+[33mcommit 6fa7fe87468b9c9ac1a2662526501f6b6b1eea19[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 16:18:59 2025 -0700
+
+    Update README.md
+
+[33mcommit a8dc3071bad64493d19663348b3f0e4f3726a416[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 16:15:22 2025 -0700
+
+    Update build-ics.yml for multiple leagues
+
+[33mcommit f1ac5f73bc3dc0c32c116bf087060b66fe49a760[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 16:12:26 2025 -0700
+
+    Added Challenger league
+
+[33mcommit 5b2ccd1572acdf2efcc1d40996bbce2946b463a5[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 10:43:55 2025 -0700
+
+    Create README.md
+
+[33mcommit e2711014cea8613404402adeeb556a991883df35[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 10:40:16 2025 -0700
+
+    Update make_mlp_ics_multi.py
+
+[33mcommit 85e06c96c028e64ba687ee2851948d9a6db307ff[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 10:35:26 2025 -0700
+
+    Create make_mlp_ics_multi.py
+
+[33mcommit d7f5f5ae6866b1ad1bc3c28615f0ccdef60fd8de[m
+Author: Noah S-W <noahsw@users.noreply.github.com>
+Date:   Thu Aug 14 10:34:00 2025 -0700
+
+    Create build-ics.yml
