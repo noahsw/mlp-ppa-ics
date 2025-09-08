@@ -177,7 +177,7 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
     return None
 
 
-def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
+def parse_schedule_content(html_content: str, debug: bool = False) -> List[Dict[str, Any]]:
     """Parse HTML content and extract schedule events."""
     events = []
 
@@ -188,6 +188,11 @@ def parse_schedule_content(html_content: str) -> List[Dict[str, Any]]:
     if schedule_match:
         # Parse actual PPA website structure
         events = parse_ppa_website_structure(schedule_match.group(1))
+    elif debug:
+        print("Could not find the '#how-to-watch' section in the provided HTML.")
+
+    if not events and debug:
+        print("No events were parsed from the HTML content.")
 
     return events
 
@@ -663,7 +668,7 @@ def main():
             sys.exit(1)
 
         # Parse tournament schedule from file
-        events = parse_schedule_content(html_content)
+        events = parse_schedule_content(html_content, args.debug)
 
     elif args.tour_schedule_file:
         if args.debug:
@@ -694,7 +699,7 @@ def main():
             if url_match:
                 args.tournament = url_match.group(1).replace('-', ' ').title()
 
-        events = parse_schedule_content(html_content)
+        events = parse_schedule_content(html_content, args.debug)
 
     elif args.tour_schedule_url:
         # Fetch tournament from schedule page
@@ -713,7 +718,7 @@ def main():
         if args.tournament == "Tournament":
             args.tournament = tournament_name
 
-        events = parse_schedule_content(html_content)
+        events = parse_schedule_content(html_content, args.debug)
 
     elif args.tournament_schedule_url:
         # Direct tournament URL
@@ -732,7 +737,7 @@ def main():
             print("  - Try using a local HTML file: --tournament-schedule-file [FILE]", file=sys.stderr)
             sys.exit(1)
 
-        events = parse_schedule_content(html_content)
+        events = parse_schedule_content(html_content, args.debug)
 
     else:
         print("Error: Must specify one of --tournament-schedule-url, --tour-schedule-url, --tournament-schedule-file, or --tour-schedule-file", file=sys.stderr)
