@@ -673,7 +673,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             html_content = f.read()
         real_events = ppa.parse_schedule_content(html_content)
         fs1_events = ppa.filter_by_broadcaster(real_events, "FS1")
-        self.assertEqual(len(fs1_events), 2, "Should filter to 2 FS1 events from sample data")
+        self.assertEqual(len(fs1_events), 1, "Should filter to 1 FS1 event from sample data")
 
         # Test FS2 filtering
         fs2_events = ppa.filter_by_broadcaster(test_events, "FS2")

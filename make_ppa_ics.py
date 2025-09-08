@@ -269,7 +269,7 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
                 broadcaster_match = re.search(r'<a[^>]*href="([^"]*)"[^>]*>',
                                               event_content)
                 if broadcaster_match:
-                    href = broadcaster_match.group(1)
+                    href = broadcaster_match.group(1).lower()
                     if 'pickleballtv.com' in href:
                         broadcaster = 'PickleballTV'
                     elif 'tennischannel.com' in href:
