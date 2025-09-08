@@ -1,0 +1,29 @@
+Extracted tournament name: Cincinnati Slam
+Found 14 events:
+  2025-09-09 - Humana Championship Court - Round 64 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-09 - Carvana Grandstand Court - Round 64 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-10 - Humana Championship Court - Round 32 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-10 - Humana Championship Court - Round 32 - 12:00 PM - 2:00 PM ET - Tennis Channel
+  2025-09-10 - Carvana Grandstand Court - Round 32 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-11 - Humana Championship Court - Round 16 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-11 - Humana Championship Court - Round 16 - 12:00 PM - 2:00 PM ET - Tennis Channel
+  2025-09-11 - Carvana Grandstand Court - Round 16 - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-12 - Humana Championship Court - Quarterfinals - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-12 - Carvana Grandstand Court - Quarterfinals - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-13 - Humana Championship Court - Semifinals - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-13 - Carvana Grandstand Court - Juniors - 10:00 AM - 6:00 PM ET - PickleballTV
+  2025-09-14 - Humana Championship Court - Championships - 10:00 AM - 4:00 PM ET - PickleballTV
+  2025-09-14 - Carvana Grandstand Court - Bronze - 9:00 AM - 2:00 PM ET - PickleballTV
+Creating all specialized calendar files from 14 total events
+Created ppa.ics with 14 events
+Created ppa-championships.ics with 4 events
+No events found for PPA Tour - Singles, skipping ppa-singles.ics
+No events found for PPA Tour - Men's/Women's Doubles, skipping ppa-gender-doubles.ics
+No events found for PPA Tour - Mixed Doubles, skipping ppa-mixed-doubles.ics
+Created ppa-pickleballtv.ics with 12 events
+Created ppa-tennis-channel.ics with 2 events
+No events found for PPA Tour - FS1, skipping ppa-fs1.ics
+No events found for PPA Tour - FS2, skipping ppa-fs2.ics
+Created ppa-championship-court.ics with 8 events
+Created ppa-grandstand-court.ics with 6 events
+Created 6 ICS files from 14 total events
