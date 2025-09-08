@@ -77,10 +77,16 @@ class TestPPAICSGenerator(unittest.TestCase):
     def test_time_range_parsing(self):
         """Test time range parsing and UTC conversion"""
         test_cases = [
+            # Original format with ET after both times
             ("2:00 PM ET - 10:00 PM ET", "2025-08-28"),
             ("4:00 PM ET - 9:00 PM ET", "2025-08-28"),
             ("1:00 PM ET - 7:00 PM ET", "2025-08-31"),
             ("10:30 PM ET - 12:30 AM ET", "2025-08-31"),  # Midnight crossover
+            # Cincinnati format with ET only at the end
+            ("10:00 AM - 6:00 PM ET", "2025-09-09"),
+            ("12:00 PM - 2:00 PM ET", "2025-09-10"),
+            ("9:00 AM - 2:00 PM ET", "2025-09-14"),
+            ("10:00 AM - 4:00 PM ET", "2025-09-14"),
         ]
 
         for time_str, event_date in test_cases:
@@ -555,6 +561,34 @@ class TestPPAICSGenerator(unittest.TestCase):
 
             self.assertEqual(broadcaster, expected, f"Failed to detect broadcaster for {url}")
 
+    def test_time_format_variations(self):
+        """Test various time format variations"""
+        test_cases = [
+            # Valid formats
+            ("2:00 PM ET - 10:00 PM ET", "2025-08-28", True),  # Original format
+            ("10:00 AM - 6:00 PM ET", "2025-09-09", True),     # Cincinnati format
+            ("12:00 PM - 2:00 PM ET", "2025-09-10", True),     # Cincinnati format
+            ("1:30 PM ET - 11:30 PM ET", "2025-08-28", True),  # Original format with 30 minutes
+            ("9:00 AM - 5:00 PM ET", "2025-09-14", True),      # Cincinnati format, single digit hour
+            
+            # Invalid formats
+            ("Invalid time", "2025-08-28", False),
+            ("2:00 PM - 10:00 PM", "2025-08-28", False),       # No ET at all
+            ("2:00 PM CST - 10:00 PM ET", "2025-08-28", False), # Wrong timezone
+            ("", "2025-08-28", False),                         # Empty string
+            ("2:00 PM ET -", "2025-08-28", False),             # Missing end time
+            ("- 10:00 PM ET", "2025-08-28", False),            # Missing start time
+        ]
+
+        for time_str, event_date, should_parse in test_cases:
+            start_time, end_time = ppa.parse_time_range(time_str, event_date)
+            if should_parse:
+                self.assertIsNotNone(start_time, f"Should parse start time from '{time_str}'")
+                self.assertIsNotNone(end_time, f"Should parse end time from '{time_str}'")
+            else:
+                self.assertIsNone(start_time, f"Should not parse start time from invalid format '{time_str}'")
+                self.assertIsNone(end_time, f"Should not parse end time from invalid format '{time_str}'")
+
     def test_edge_cases(self):
         """Test various edge cases"""
         # Test empty HTML
@@ -566,7 +600,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         events = ppa.parse_schedule_content(html)
         self.assertEqual(len(events), 0, "HTML without schedule should return no events")
 
-        # Test invalid time range
+        # Test invalid time range (covered in test_time_format_variations now)
         start, end = ppa.parse_time_range("Invalid time", "2025-08-28")
         self.assertIsNone(start)
         self.assertIsNone(end)
