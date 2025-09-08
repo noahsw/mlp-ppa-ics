@@ -308,9 +308,9 @@ def parse_date_text(date_text: str) -> Optional[str]:
 def parse_time_range(time_str: str,
                      event_date: str) -> Tuple[Optional[str], Optional[str]]:
     """Parse time range string into UTC datetime strings."""
-    # Parse "2:00 PM ET - 10:00 PM ET" format
+    # Parse "2:00 PM ET - 10:00 PM ET" format or "10:00 AM - 6:00 PM ET" format
     match = re.match(
-        r'(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET',
+        r'(\d{1,2}:\d{2}\s*(?:AM|PM))(?:\s*ET)?\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET',
         time_str, re.IGNORECASE)
     if not match:
         return None, None
