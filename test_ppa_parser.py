@@ -519,6 +519,49 @@ class TestPPAICSGenerator(unittest.TestCase):
         championship_events = ppa.filter_championship_events(sample_events)
         self.assertEqual(len(championship_events), 0, "Should find no championship events")
 
+    def test_no_upcoming_tournaments_scenario(self):
+        """Test handling of no upcoming tournaments case"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            test_output = os.path.join(temp_dir, "no_tournaments_test.ics")
+
+            # Test with the no upcoming tournaments file
+            result = subprocess.run([
+                sys.executable, "make_ppa_ics.py",
+                "--tour-schedule-file", "sample_ppa_tour_schedule_no_upcoming.html",
+                "--output", test_output,
+                "--debug"
+            ], capture_output=True, text=True)
+
+            # Should succeed and create empty ICS file
+            self.assertEqual(result.returncode, 0, f"Script should succeed with no tournaments: {result.stderr}")
+            
+            # Verify output file was created
+            self.assertTrue(os.path.exists(test_output), "Should create output file even with no tournaments")
+
+            # Verify it's a valid empty ICS file
+            with open(test_output, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            self.assertIn("BEGIN:VCALENDAR", content)
+            self.assertIn("END:VCALENDAR", content)
+            self.assertIn("X-WR-CALNAME:PPA Tour", content)
+            self.assertEqual(content.count("BEGIN:VEVENT"), 0, "Should have zero events")
+
+            # Debug output should indicate no upcoming tournaments
+            self.assertIn("No upcoming tournaments", result.stdout)
+
+    def test_tournament_url_extraction_with_no_tournaments(self):
+        """Test URL extraction when no tournaments are available"""
+        # Test with the no upcoming tournaments HTML
+        with open("sample_ppa_tour_schedule_no_upcoming.html", 'r', encoding='utf-8') as f:
+            no_tournaments_html = f.read()
+
+        tournament_url = ppa.extract_first_tournament_url(no_tournaments_html)
+        self.assertIsNone(tournament_url, "Should return None when no tournaments are scheduled")
+
+        # Verify the HTML contains the expected marker
+        self.assertIn("<!-- No upcoming tournaments scheduled -->", no_tournaments_html)
+
     def test_championship_filename_generation(self):
         """Test that championship filenames are generated correctly"""
         test_cases = [

@@ -698,8 +698,7 @@ def main():
                 print("No tournament URL found in schedule file", file=sys.stderr)
                 sys.exit(1)
         else:
-
-        if args.debug:
+            if args.debug:
                 print(f"Found tournament URL in file: {tournament_url}")
 
             # Fetch the tournament page
