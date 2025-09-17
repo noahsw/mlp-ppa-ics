@@ -8,7 +8,7 @@ channel = "stable-25_05"
 run = ["sh", "-c", "python make_mlp_ics_multi.py", "--debug"]
 
 [workflows]
-runButton = "Tests"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Tests"
@@ -27,6 +27,26 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python make_mlp_ics_multi.py --debug"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "MLP Calendar Generator"
+
+[[workflows.workflow]]
+name = "MLP Calendar Generator"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python make_mlp_ics_multi.py --debug --days 5"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 expertMode = true

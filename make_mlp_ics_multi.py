@@ -143,7 +143,7 @@ def fetch_json(url: str, debug: bool = False, max_attempts: int = 4, base_delay:
                 if status != 200:
                     if debug:
                         print(f"  ! Non-200: {status}\n  Body(head): {body[:200]}")
-                    raise HTTPError(url, status, f"HTTP {status}", hdrs=None, fp=None)
+                    raise HTTPError(url, status, f"HTTP {status}", None, None)
                 return json.loads(body)
         except HTTPError as e:
             code = getattr(e, "code", "HTTPError")
@@ -236,7 +236,7 @@ def primary_court_code(matchup: Dict[str, Any]) -> Optional[str]:
 
         if court_counts:
             # Return the most common court
-            return max(court_counts, key=court_counts.get)
+            return max(court_counts, key=lambda x: court_counts[x])
 
     # Fallback to courts array if no matches
     if "courts" in matchup and matchup["courts"]:
@@ -245,9 +245,6 @@ def primary_court_code(matchup: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def filter_by_primary_court(matchups: List[Dict[str, Any]], court_code: str) -> List[Dict[str, Any]]:
-    """Filter matchups by primary court code."""
-    return [m for m in matchups if primary_court_code(m) == court_code]
 
 def make_event_title(matchup: Dict[str, Any]) -> str:
     away = (matchup.get("team_two_title") or "").strip()

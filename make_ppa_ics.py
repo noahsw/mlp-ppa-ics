@@ -114,6 +114,7 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
                         return content.decode('utf-8', errors='replace')
 
         except (URLError, HTTPError) as e:
+            import time
             error_msg = f"Network error on attempt {attempt}/{max_retries}: {e}"
             if attempt == max_retries:
                 print(f"Failed to fetch {url} after {max_retries} attempts: {e}", file=sys.stderr)
@@ -128,6 +129,7 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
                 continue
 
         except Exception as e:
+            import time
             error_msg = f"Unexpected error on attempt {attempt}/{max_retries}: {e}"
             if attempt == max_retries:
                 print(f"Failed to fetch {url} after {max_retries} attempts due to unexpected error: {e}", file=sys.stderr)
@@ -774,7 +776,7 @@ def main():
     if not events:
         print("No events found in the HTML content - creating empty ICS file", file=sys.stderr)
         # Create empty ICS file instead of exiting with error
-        write_ics_file(args.output, [], args.tournament, "PPA Tour")
+        write_ics_file(args.output, [], args.tournament or "PPA Tournament", "PPA Tour")
         return
 
     # Handle championships-only flag for backward compatibility
@@ -787,12 +789,12 @@ def main():
             # Create empty championships ICS file instead of exiting with error
             base, ext = os.path.splitext(args.output)
             championships_filename = f"{base}-championships{ext}"
-            write_ics_file(championships_filename, [], args.tournament, "PPA Tour - Championships")
+            write_ics_file(championships_filename, [], args.tournament or "PPA Tournament", "PPA Tour - Championships")
             return
         # Write only championships file with modified filename
         base, ext = os.path.splitext(args.output)
         championships_filename = f"{base}-championships{ext}"
-        write_ics_file(championships_filename, championship_events, args.tournament, "PPA Tour - Championships")
+        write_ics_file(championships_filename, championship_events, args.tournament or "PPA Tournament", "PPA Tour - Championships")
     else:
         # Generate broadcaster-specific files if any broadcaster flags are set
         broadcasters = ['PickleballTV', 'Tennis Channel', 'FS1', 'FS2']
@@ -812,7 +814,7 @@ def main():
                     filename_suffix = broadcaster_filenames.get(broadcaster, broadcaster.lower())
                     output_filename = f"{os.path.splitext(args.output)[0]}-{filename_suffix}.ics"
                     calendar_title = f"PPA Tour - {broadcaster}"
-                    write_ics_file(output_filename, filtered_events, args.tournament, calendar_title)
+                    write_ics_file(output_filename, filtered_events, args.tournament or "PPA Tournament", calendar_title)
                 elif args.debug:
                     print(f"No events found for {broadcaster}, skipping {output_filename}")
 
@@ -820,7 +822,7 @@ def main():
         if not any(broadcaster_flags) and not args.championships_only:
             if args.debug:
                 print(f"Creating all specialized calendar files from {len(events)} total events")
-            write_all_ics_files(args.output, events, args.tournament, args.debug)
+            write_all_ics_files(args.output, events, args.tournament or "PPA Tournament", args.debug)
         elif args.championships_only:
             # Championships-only was handled above, but ensure write_all_ics_files isn't called unnecessarily
             pass
