@@ -562,6 +562,13 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
 
     tournament_url = extract_first_tournament_url(schedule_html)
     if not tournament_url:
+        # Check if this is the "no upcoming tournaments" case by looking for the empty tournament list
+        if '<!-- No upcoming tournaments scheduled -->' in schedule_html or 'No upcoming tournaments' in schedule_html:
+            if debug:
+                print("No upcoming tournaments found in schedule page - this is expected when there are no tournaments")
+            # Return special values to indicate "no tournaments" case (not an error)
+            return None, None, None
+        
         if debug:
             print("ERROR: No tournament URL found in schedule page")
             print("\nDebugging URL extraction:")
@@ -681,25 +688,33 @@ def main():
         # Extract tournament URL from schedule file
         tournament_url = extract_first_tournament_url(schedule_html)
         if not tournament_url:
-            print("No tournament URL found in schedule file", file=sys.stderr)
-            sys.exit(1)
+            # Check if this is the "no upcoming tournaments" case
+            if '<!-- No upcoming tournaments scheduled -->' in schedule_html or 'No upcoming tournaments' in schedule_html:
+                if args.debug:
+                    print("No upcoming tournaments found in schedule file - creating empty ICS files")
+                events = []
+                args.tournament = "PPA Tour (No Upcoming Tournaments)"
+            else:
+                print("No tournament URL found in schedule file", file=sys.stderr)
+                sys.exit(1)
+        else:
 
         if args.debug:
-            print(f"Found tournament URL in file: {tournament_url}")
+                print(f"Found tournament URL in file: {tournament_url}")
 
-        # Fetch the tournament page
-        html_content = fetch_html(tournament_url, debug=args.debug)
-        if not html_content:
-            print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
-            sys.exit(1)
+            # Fetch the tournament page
+            html_content = fetch_html(tournament_url, debug=args.debug)
+            if not html_content:
+                print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
+                sys.exit(1)
 
-        # Extract tournament name from URL if not provided
-        if args.tournament == "Tournament":
-            url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
-            if url_match:
-                args.tournament = url_match.group(1).replace('-', ' ').title()
+            # Extract tournament name from URL if not provided
+            if args.tournament == "Tournament":
+                url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
+                if url_match:
+                    args.tournament = url_match.group(1).replace('-', ' ').title()
 
-        events = parse_schedule_content(html_content, args.debug)
+            events = parse_schedule_content(html_content, args.debug)
 
     elif args.tour_schedule_url:
         # Fetch tournament from schedule page
@@ -707,18 +722,25 @@ def main():
         html_content, tournament_url, tournament_name = fetch_tournament_from_schedule(schedule_url, args.debug)
 
         if not html_content:
-            print("\nFailed to fetch tournament schedule from PPA website.", file=sys.stderr)
-            print("Alternative options:", file=sys.stderr)
-            print("  1. Try again later (the website may be temporarily unavailable)", file=sys.stderr)
-            print("  2. Use a local HTML file: --tour-schedule-file sample_ppa_tour_schedule.html", file=sys.stderr)
-            print("  3. Use a specific tournament URL: --tournament-schedule-url [TOURNAMENT_URL]", file=sys.stderr)
-            sys.exit(1)
+            if tournament_url is None and tournament_name is None:
+                # No upcoming tournaments case - this is not an error
+                if args.debug:
+                    print("No upcoming tournaments found - creating empty ICS files")
+                events = []
+                args.tournament = "PPA Tour (No Upcoming Tournaments)"
+            else:
+                print("\nFailed to fetch tournament schedule from PPA website.", file=sys.stderr)
+                print("Alternative options:", file=sys.stderr)
+                print("  1. Try again later (the website may be temporarily unavailable)", file=sys.stderr)
+                print("  2. Use a local HTML file: --tour-schedule-file sample_ppa_tour_schedule.html", file=sys.stderr)
+                print("  3. Use a specific tournament URL: --tournament-schedule-url [TOURNAMENT_URL]", file=sys.stderr)
+                sys.exit(1)
+        else:
+            # Update tournament name if not provided
+            if args.tournament == "Tournament":
+                args.tournament = tournament_name
 
-        # Update tournament name if not provided
-        if args.tournament == "Tournament":
-            args.tournament = tournament_name
-
-        events = parse_schedule_content(html_content, args.debug)
+            events = parse_schedule_content(html_content, args.debug)
 
     elif args.tournament_schedule_url:
         # Direct tournament URL
