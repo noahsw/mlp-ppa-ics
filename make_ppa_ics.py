@@ -155,16 +155,16 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
     """Extract the first tournament URL from the schedule page."""
     # Try multiple patterns to find tournament links
     patterns = [
-        # Original pattern
-        r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
-        # Alternative pattern without class requirement
-        r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+        # Pattern with class (both www and non-www versions)
+        r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+        # Alternative pattern without class requirement (both www and non-www versions)
+        r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"',
         # Pattern for relative URLs
         r'<a\s+href="(/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
-        # Simplified pattern
-        r'href="(https://www\.ppatour\.com/tournament/[^"]+)"',
-        # Pattern for any tournament link structure
-        r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
+        # Simplified pattern (both www and non-www versions)
+        r'href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"',
+        # Pattern for any tournament link structure (both www and non-www versions)
+        r'"(https://(?:www\.)?ppatour\.com/tournament/\d+/[^"]+)"'
     ]
 
     for pattern in patterns:
@@ -578,11 +578,11 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
 
             # Test each pattern individually for debugging
             patterns = [
-                r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
-                r'<a\s+href="(https://www\.ppatour\.com/tournament/[^"]+)"',
+                r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
+                r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"',
                 r'<a\s+href="(/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
-                r'href="(https://www\.ppatour\.com/tournament/[^"]+)"',
-                r'"(https://www\.ppatour\.com/tournament/\d+/[^"]+)"'
+                r'href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"',
+                r'"(https://(?:www\.)?ppatour\.com/tournament/\d+/[^"]+)"'
             ]
 
             for i, pattern in enumerate(patterns):
