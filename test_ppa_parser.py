@@ -199,6 +199,78 @@ class TestPPAICSGenerator(unittest.TestCase):
         no_url = ppa.extract_first_tournament_url(no_tournament_html)
         self.assertIsNone(no_url, "Should return None when no tournament links found")
 
+    def test_tournament_url_extraction_www_and_non_www_formats(self):
+        """Test extracting tournament URLs from both www and non-www formats"""
+        # Test with www version (old format)
+        html_with_www = '''
+        <html>
+        <body>
+            <ul class="tournament-schedule__item-list">
+                <li class="tournament-schedule__item-tour tournament-status--registration">
+                    <div class="tournament-schedule__item-link">
+                        <a href="https://www.ppatour.com/tournament/2025/sacramento-vintage-open/" class="tournament-schedule__item-link-wrap"></a>
+                    </div>
+                </li>
+            </ul>
+        </body>
+        </html>
+        '''
+        
+        # Test with non-www version (new format)
+        html_without_www = '''
+        <html>
+        <body>
+            <ul class="tournament-schedule__item-list">
+                <li class="tournament-schedule__item-tour tournament-status--registration">
+                    <div class="tournament-schedule__item-link">
+                        <a href="https://ppatour.com/tournament/2025/sacramento-vintage-open/" class="tournament-schedule__item-link-wrap"></a>
+                    </div>
+                </li>
+            </ul>
+        </body>
+        </html>
+        '''
+        
+        # Test both formats
+        www_url = ppa.extract_first_tournament_url(html_with_www)
+        non_www_url = ppa.extract_first_tournament_url(html_without_www)
+        
+        # Both should be extracted successfully
+        self.assertIsNotNone(www_url, "Should extract www tournament URL")
+        self.assertIsNotNone(non_www_url, "Should extract non-www tournament URL")
+        
+        # Both should contain the tournament path
+        self.assertIn("ppatour.com/tournament/2025/sacramento-vintage-open/", www_url)
+        self.assertIn("ppatour.com/tournament/2025/sacramento-vintage-open/", non_www_url)
+        
+        # Verify the exact URLs
+        self.assertEqual(www_url, "https://www.ppatour.com/tournament/2025/sacramento-vintage-open/")
+        self.assertEqual(non_www_url, "https://ppatour.com/tournament/2025/sacramento-vintage-open/")
+        
+        # Test with mixed content - should extract the first one found
+        html_mixed = '''
+        <html>
+        <body>
+            <ul class="tournament-schedule__item-list">
+                <li class="tournament-schedule__item-tour tournament-status--registration">
+                    <div class="tournament-schedule__item-link">
+                        <a href="https://ppatour.com/tournament/2025/first-tournament/" class="tournament-schedule__item-link-wrap"></a>
+                    </div>
+                </li>
+                <li class="tournament-schedule__item-tour tournament-status--registration">
+                    <div class="tournament-schedule__item-link">
+                        <a href="https://www.ppatour.com/tournament/2025/second-tournament/" class="tournament-schedule__item-link-wrap"></a>
+                    </div>
+                </li>
+            </ul>
+        </body>
+        </html>
+        '''
+        
+        mixed_url = ppa.extract_first_tournament_url(html_mixed)
+        self.assertIsNotNone(mixed_url, "Should extract first tournament URL from mixed content")
+        self.assertIn("first-tournament", mixed_url, "Should extract the first tournament found")
+
     def test_tour_vs_tournament_schedule_page_detection(self):
         """Test detection of tour schedule page vs tournament schedule page"""
         # Test tournament schedule page detection (has "how-to-watch")

@@ -810,9 +810,9 @@ def main():
         for i, broadcaster in enumerate(broadcasters):
             if broadcaster_flags[i]:
                 filtered_events = filter_by_broadcaster(events, broadcaster)
+                filename_suffix = broadcaster_filenames.get(broadcaster, broadcaster.lower())
+                output_filename = f"{os.path.splitext(args.output)[0]}-{filename_suffix}.ics"
                 if filtered_events:
-                    filename_suffix = broadcaster_filenames.get(broadcaster, broadcaster.lower())
-                    output_filename = f"{os.path.splitext(args.output)[0]}-{filename_suffix}.ics"
                     calendar_title = f"PPA Tour - {broadcaster}"
                     write_ics_file(output_filename, filtered_events, args.tournament or "PPA Tournament", calendar_title)
                 elif args.debug:
