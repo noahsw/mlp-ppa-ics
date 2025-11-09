@@ -656,6 +656,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             ("https://www.tennischannel.com/en-us/page/home", "Tennis Channel"),
             ("https://www.foxsports.com/live/fs1", "FS1"),
             ("https://www.foxsports.com/live/fs2", "FS2"),
+            ("https://www.espn.com/watch/espn2", "ESPN2"),
             ("https://unknown-broadcaster.com", "Unknown"),
         ]
 
@@ -673,6 +674,8 @@ class TestPPAICSGenerator(unittest.TestCase):
                 broadcaster = 'FS1'
             elif 'foxsports.com/live/fs2' in url:
                 broadcaster = 'FS2'
+            elif 'espn.com' in url and 'espn2' in url:
+                broadcaster = 'ESPN2'
 
             self.assertEqual(broadcaster, expected, f"Failed to detect broadcaster for {url}")
 
@@ -805,6 +808,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             {'category': 'Singles', 'date': '2025-08-28', 'court': 'Court 1', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
             {'category': 'Doubles', 'date': '2025-08-29', 'court': 'Court 2', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
             {'category': 'Mixed', 'date': '2025-08-30', 'court': 'Court 3', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS2'},
+            {'category': 'Championships', 'date': '2025-08-31', 'court': 'Court 4', 'time': '4:00 PM ET - 6:00 PM ET', 'broadcaster': 'ESPN2'},
         ]
 
         # Test PickleballTV filtering
@@ -828,6 +832,11 @@ class TestPPAICSGenerator(unittest.TestCase):
         fs2_events = ppa.filter_by_broadcaster(test_events, "FS2")
         self.assertEqual(len(fs2_events), 1, "Should filter to 1 FS2 event")
         self.assertEqual(fs2_events[0]['broadcaster'], 'FS2')
+
+        # Test ESPN2 filtering
+        espn2_events = ppa.filter_by_broadcaster(test_events, "ESPN2")
+        self.assertEqual(len(espn2_events), 1, "Should filter to 1 ESPN2 event")
+        self.assertEqual(espn2_events[0]['broadcaster'], 'ESPN2')
 
     def test_court_filtering(self):
         """Test filtering events by court"""
