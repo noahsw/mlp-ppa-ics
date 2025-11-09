@@ -285,6 +285,8 @@ def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
                         broadcaster = 'FS1'
                     elif 'foxsports.com/live/fs2' in href:
                         broadcaster = 'FS2'
+                    elif 'espn.com' in href and 'espn2' in href:
+                        broadcaster = 'ESPN2'
 
                 event = {
                     'date': parsed_date,
@@ -503,6 +505,7 @@ def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], to
         ("-tennis-channel", filter_by_broadcaster(all_events, "Tennis Channel"), "PPA Tour - Tennis Channel"),
         ("-fs1", filter_by_broadcaster(all_events, "FS1"), "PPA Tour - FS1"),
         ("-fs2", filter_by_broadcaster(all_events, "FS2"), "PPA Tour - FS2"),
+        ("-espn2", filter_by_broadcaster(all_events, "ESPN2"), "PPA Tour - ESPN2"),
         ("-championship-court", filter_by_court(all_events, "Championship Court"), "PPA Tour - Championship Court"),
         ("-grandstand-court", filter_by_court(all_events, "Grandstand Court"), "PPA Tour - Grandstand Court"),
     ]

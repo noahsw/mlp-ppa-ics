@@ -52,6 +52,8 @@ Use any of these URLs when subscribing (pick one or many):
 
 - **FS2:** https://noahsw.github.io/mlp-ppa-ics/ppa-fs2.ics
 
+- **ESPN2:** https://noahsw.github.io/mlp-ppa-ics/ppa-espn2.ics
+
 ---
 
 ## Subscribe instructions
@@ -118,7 +120,7 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
   - **Singles events** (ppa-singles.ics)
   - **Men's/Women's doubles** (ppa-gender-doubles.ics)
   - **Mixed doubles** (ppa-mixed-doubles.ics)
-  - **By broadcaster**: PickleballTV, Tennis Channel, FS1, FS2
+  - **By broadcaster**: PickleballTV, Tennis Channel, FS1, FS2, ESPN2
   - **By court**: Championship Court, Grandstand Court
 
 ---
