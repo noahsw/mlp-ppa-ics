@@ -29,6 +29,14 @@ jobs:
           python -m pip install --upgrade pip
           # pip install -r requirements.txt
 
+      - name: Run tests
+        run: |
+          python run_tests.py
+          if [ $? -ne 0 ]; then
+            echo "Tests failed!"
+            exit 1
+          fi
+
       # Optional but useful: see exactly what the endpoint returns from Actions
       - name: Probe MLP endpoint (debug)
         run: |
