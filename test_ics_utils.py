@@ -167,6 +167,132 @@ class TestICSUtils(unittest.TestCase):
         self.assertTrue(all_lines[-1].startswith("END:VCALENDAR"))
 
 
+    def test_format_utc_datetime_with_utc_datetime(self):
+        """Test format_utc_datetime with UTC datetime object"""
+        from datetime import datetime, timezone
+
+        # Create a UTC datetime
+        dt = datetime(2025, 8, 16, 14, 30, 45, tzinfo=timezone.utc)
+        result = ics_utils.format_utc_datetime(dt)
+
+        self.assertEqual(result, "20250816T143045Z")
+
+    def test_format_utc_datetime_with_timezone_conversion(self):
+        """Test format_utc_datetime converts non-UTC timezone to UTC"""
+        from datetime import datetime, timezone, timedelta
+
+        # Create a datetime in a different timezone (e.g., UTC-5)
+        eastern_offset = timezone(timedelta(hours=-5))
+        dt = datetime(2025, 8, 16, 10, 30, 45, tzinfo=eastern_offset)
+
+        result = ics_utils.format_utc_datetime(dt)
+
+        # 10:30:45 in UTC-5 should be 15:30:45 UTC
+        self.assertEqual(result, "20250816T153045Z")
+
+    def test_format_utc_datetime_midnight(self):
+        """Test format_utc_datetime at midnight"""
+        from datetime import datetime, timezone
+
+        dt = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        result = ics_utils.format_utc_datetime(dt)
+
+        self.assertEqual(result, "20250101T000000Z")
+
+    def test_format_utc_datetime_end_of_day(self):
+        """Test format_utc_datetime at end of day"""
+        from datetime import datetime, timezone
+
+        dt = datetime(2025, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+        result = ics_utils.format_utc_datetime(dt)
+
+        self.assertEqual(result, "20251231T235959Z")
+
+    def test_read_html_file_success(self):
+        """Test read_html_file with existing file"""
+        import tempfile
+        import os
+
+        # Create a temporary HTML file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+            f.write("<html><body><h1>Test Content</h1></body></html>")
+            temp_file = f.name
+
+        try:
+            result = ics_utils.read_html_file(temp_file)
+            self.assertIn("Test Content", result)
+            self.assertIn("<html>", result)
+        finally:
+            os.unlink(temp_file)
+
+    def test_read_html_file_with_unicode(self):
+        """Test read_html_file with Unicode content"""
+        import tempfile
+        import os
+
+        # Create a temporary HTML file with Unicode content
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+            f.write("<html><body>Café résumé — naïve</body></html>")
+            temp_file = f.name
+
+        try:
+            result = ics_utils.read_html_file(temp_file)
+            self.assertIn("Café", result)
+            self.assertIn("résumé", result)
+            self.assertIn("naïve", result)
+        finally:
+            os.unlink(temp_file)
+
+    def test_read_html_file_nonexistent(self):
+        """Test read_html_file with non-existent file raises IOError"""
+        with self.assertRaises(IOError):
+            ics_utils.read_html_file("/nonexistent/path/to/file.html")
+
+    def test_read_html_file_empty(self):
+        """Test read_html_file with empty file"""
+        import tempfile
+        import os
+
+        # Create an empty temporary file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+            temp_file = f.name
+
+        try:
+            result = ics_utils.read_html_file(temp_file)
+            self.assertEqual(result, "")
+        finally:
+            os.unlink(temp_file)
+
+    def test_read_html_file_debug_output(self):
+        """Test read_html_file debug output"""
+        import tempfile
+        import os
+        import io
+        import sys
+
+        # Create a temporary HTML file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+            f.write("<html>Test</html>")
+            temp_file = f.name
+
+        try:
+            # Capture stdout to verify debug output
+            captured_output = io.StringIO()
+            sys.stdout = captured_output
+
+            ics_utils.read_html_file(temp_file, debug=True)
+
+            sys.stdout = sys.__stdout__
+            output = captured_output.getvalue()
+
+            # Debug output should mention successful read
+            self.assertIn("Successfully read", output)
+            self.assertIn("characters", output)
+        finally:
+            os.unlink(temp_file)
+            sys.stdout = sys.__stdout__
+
+
 def run_test_suite():
     """Run the ICS utils test suite with detailed output"""
     print("Running ICS Utils Test Suite...")

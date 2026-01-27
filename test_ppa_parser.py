@@ -63,11 +63,13 @@ class TestPPAICSGenerator(unittest.TestCase):
 
     def test_date_parsing(self):
         """Test date text parsing"""
+        # Use current year since parse_date_text uses datetime.now().year
+        current_year = datetime.now().year
         test_cases = [
-            ("Thursday, August 28", "2025-08-28"),
-            ("Friday, August 29", "2025-08-29"),
-            ("Saturday, August 30", "2025-08-30"),
-            ("Sunday, August 31", "2025-08-31"),
+            ("Thursday, August 28", f"{current_year}-08-28"),
+            ("Friday, August 29", f"{current_year}-08-29"),
+            ("Saturday, August 30", f"{current_year}-08-30"),
+            ("Sunday, August 31", f"{current_year}-08-31"),
         ]
 
         for date_text, expected in test_cases:
@@ -1076,6 +1078,224 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertIsNotNone(tournament_url, "Should extract tournament URL from tour schedule file")
             self.assertIn("ppatour.com/tournament", tournament_url)
             self.assertIn("open-at-the-las-vegas-strip", tournament_url)
+
+    def test_write_all_ics_files_creates_all_expected_files(self):
+        """Test that write_all_ics_files creates all 12 specialized ICS files"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_file = os.path.join(temp_dir, "ppa.ics")
+
+            # Create test events that cover all filtering scenarios
+            test_events = [
+                {'category': 'Singles', 'date': '2025-08-28', 'court': 'Championship Court', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+                {'category': 'Mixed Doubles', 'date': '2025-08-29', 'court': 'Grandstand Court', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+                {'category': 'Men\'s/Women\'s Doubles', 'date': '2025-08-30', 'court': 'Championship Court', 'time': '3:00 PM ET - 5:00 PM ET', 'broadcaster': 'FS1'},
+                {'category': 'Championships', 'date': '2025-08-31', 'court': 'Grandstand Court', 'time': '4:00 PM ET - 6:00 PM ET', 'broadcaster': 'FS2'},
+                {'category': 'Mixed Doubles Final', 'date': '2025-08-31', 'court': 'Championship Court', 'time': '5:00 PM ET - 7:00 PM ET', 'broadcaster': 'ESPN2'},
+            ]
+
+            # Call write_all_ics_files
+            ppa.write_all_ics_files(base_file, test_events, "Test Tournament", debug=False)
+
+            # Define expected files and their expected event counts
+            expected_files = {
+                'ppa.ics': 5,  # All events
+                'ppa-championships.ics': 2,  # Championships + Final
+                'ppa-singles.ics': 1,  # Singles only
+                'ppa-gender-doubles.ics': 1,  # Men's/Women's Doubles
+                'ppa-mixed-doubles.ics': 2,  # Mixed Doubles + Mixed Doubles Final
+                'ppa-pickleballtv.ics': 1,  # PickleballTV
+                'ppa-tennis-channel.ics': 1,  # Tennis Channel
+                'ppa-fs1.ics': 1,  # FS1
+                'ppa-fs2.ics': 1,  # FS2
+                'ppa-espn2.ics': 1,  # ESPN2
+                'ppa-championship-court.ics': 3,  # Championship Court events
+                'ppa-grandstand-court.ics': 2,  # Grandstand Court events
+            }
+
+            # Verify all expected files were created
+            for filename, expected_count in expected_files.items():
+                file_path = os.path.join(temp_dir, filename)
+                self.assertTrue(os.path.exists(file_path), f"Expected file not created: {filename}")
+
+                # Verify file has valid ICS structure and correct event count
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                self.assertIn("BEGIN:VCALENDAR", content, f"{filename} should have valid ICS header")
+                self.assertIn("END:VCALENDAR", content, f"{filename} should have valid ICS footer")
+
+                actual_count = content.count("BEGIN:VEVENT")
+                self.assertEqual(actual_count, expected_count,
+                               f"{filename} should have {expected_count} events, got {actual_count}")
+
+    def test_write_all_ics_files_skips_empty_filters(self):
+        """Test that write_all_ics_files skips filters that produce no events"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_file = os.path.join(temp_dir, "ppa.ics")
+
+            # Create minimal test events - only Singles on Championship Court with PickleballTV
+            test_events = [
+                {'category': 'Singles', 'date': '2025-08-28', 'court': 'Championship Court', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+            ]
+
+            # Call write_all_ics_files
+            ppa.write_all_ics_files(base_file, test_events, "Test Tournament", debug=False)
+
+            # Files that should be created (have matching events)
+            expected_created = ['ppa.ics', 'ppa-singles.ics', 'ppa-pickleballtv.ics', 'ppa-championship-court.ics']
+
+            # Files that should NOT be created (no matching events)
+            expected_not_created = [
+                'ppa-championships.ics', 'ppa-mixed-doubles.ics', 'ppa-gender-doubles.ics',
+                'ppa-tennis-channel.ics', 'ppa-fs1.ics', 'ppa-fs2.ics', 'ppa-espn2.ics',
+                'ppa-grandstand-court.ics'
+            ]
+
+            for filename in expected_created:
+                file_path = os.path.join(temp_dir, filename)
+                self.assertTrue(os.path.exists(file_path), f"Expected file should exist: {filename}")
+
+            for filename in expected_not_created:
+                file_path = os.path.join(temp_dir, filename)
+                self.assertFalse(os.path.exists(file_path), f"File should not exist (no matching events): {filename}")
+
+    def test_write_all_ics_files_correct_calendar_titles(self):
+        """Test that write_all_ics_files sets correct calendar titles for each file"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_file = os.path.join(temp_dir, "ppa.ics")
+
+            # Create events to trigger all files
+            test_events = [
+                {'category': 'Singles', 'date': '2025-08-28', 'court': 'Championship Court', 'time': '1:00 PM ET - 3:00 PM ET', 'broadcaster': 'PickleballTV'},
+                {'category': 'Championships', 'date': '2025-08-29', 'court': 'Grandstand Court', 'time': '2:00 PM ET - 4:00 PM ET', 'broadcaster': 'Tennis Channel'},
+            ]
+
+            ppa.write_all_ics_files(base_file, test_events, "Test Tournament", debug=False)
+
+            # Check calendar titles
+            title_checks = {
+                'ppa.ics': 'X-WR-CALNAME:PPA Tour',
+                'ppa-championships.ics': 'X-WR-CALNAME:PPA Tour - Championships',
+                'ppa-singles.ics': 'X-WR-CALNAME:PPA Tour - Singles',
+                'ppa-pickleballtv.ics': 'X-WR-CALNAME:PPA Tour - PickleballTV',
+                'ppa-tennis-channel.ics': 'X-WR-CALNAME:PPA Tour - Tennis Channel',
+                'ppa-championship-court.ics': 'X-WR-CALNAME:PPA Tour - Championship Court',
+                'ppa-grandstand-court.ics': 'X-WR-CALNAME:PPA Tour - Grandstand Court',
+            }
+
+            for filename, expected_title in title_checks.items():
+                file_path = os.path.join(temp_dir, filename)
+                if os.path.exists(file_path):
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    self.assertIn(expected_title, content, f"{filename} should have title '{expected_title}'")
+
+    def test_fetch_html_with_mock_success(self):
+        """Test fetch_html with mocked successful response"""
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            # Create a mock response
+            mock_response = MagicMock()
+            mock_response.read.return_value = b"<html><body>Test content</body></html>"
+            mock_response.getcode.return_value = 200
+            mock_response.headers = {'Content-Encoding': ''}
+            mock_response.__enter__ = MagicMock(return_value=mock_response)
+            mock_response.__exit__ = MagicMock(return_value=False)
+            mock_urlopen.return_value = mock_response
+
+            result = ppa.fetch_html("https://example.com/test", debug=False)
+
+            self.assertIsNotNone(result)
+            self.assertIn("Test content", result)
+
+    def test_fetch_html_with_mock_gzip_response(self):
+        """Test fetch_html with mocked gzip-compressed response"""
+        import gzip
+
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            # Create gzip compressed content
+            original_content = b"<html><body>Compressed content</body></html>"
+            compressed_content = gzip.compress(original_content)
+
+            mock_response = MagicMock()
+            mock_response.read.return_value = compressed_content
+            mock_response.getcode.return_value = 200
+            mock_response.headers = {'Content-Encoding': 'gzip'}
+            mock_response.__enter__ = MagicMock(return_value=mock_response)
+            mock_response.__exit__ = MagicMock(return_value=False)
+            mock_urlopen.return_value = mock_response
+
+            result = ppa.fetch_html("https://example.com/test", debug=False)
+
+            self.assertIsNotNone(result)
+            self.assertIn("Compressed content", result)
+
+    def test_fetch_html_with_mock_network_error(self):
+        """Test fetch_html handling of network errors"""
+        from urllib.error import URLError
+
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            mock_urlopen.side_effect = URLError("Network unreachable")
+
+            # Should return None after retries
+            result = ppa.fetch_html("https://example.com/test", debug=False, max_retries=1)
+
+            self.assertIsNone(result)
+
+    def test_fetch_html_with_mock_http_error(self):
+        """Test fetch_html handling of HTTP errors (404, 500, etc.)"""
+        from urllib.error import HTTPError
+
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            mock_urlopen.side_effect = HTTPError(
+                "https://example.com/test", 404, "Not Found", {}, None
+            )
+
+            # Should return None after retries
+            result = ppa.fetch_html("https://example.com/test", debug=False, max_retries=1)
+
+            self.assertIsNone(result)
+
+    def test_fetch_html_retry_logic(self):
+        """Test that fetch_html retries on failure"""
+        from urllib.error import URLError
+
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            # First call fails, second succeeds
+            mock_response = MagicMock()
+            mock_response.read.return_value = b"<html>Success after retry</html>"
+            mock_response.getcode.return_value = 200
+            mock_response.headers = {'Content-Encoding': ''}
+            mock_response.__enter__ = MagicMock(return_value=mock_response)
+            mock_response.__exit__ = MagicMock(return_value=False)
+
+            mock_urlopen.side_effect = [URLError("Timeout"), mock_response]
+
+            # Patch time.sleep to avoid waiting during tests
+            with patch('time.sleep'):
+                result = ppa.fetch_html("https://example.com/test", debug=False, max_retries=3)
+
+            self.assertIsNotNone(result)
+            self.assertIn("Success after retry", result)
+            self.assertEqual(mock_urlopen.call_count, 2)
+
+    def test_fetch_html_encoding_fallback(self):
+        """Test fetch_html encoding fallback to latin-1"""
+        with patch('make_ppa_ics.urlopen') as mock_urlopen:
+            # Create content with latin-1 encoding that would fail utf-8
+            latin1_content = "Café résumé".encode('latin-1')
+
+            mock_response = MagicMock()
+            mock_response.read.return_value = latin1_content
+            mock_response.getcode.return_value = 200
+            mock_response.headers = {'Content-Encoding': ''}
+            mock_response.__enter__ = MagicMock(return_value=mock_response)
+            mock_response.__exit__ = MagicMock(return_value=False)
+            mock_urlopen.return_value = mock_response
+
+            result = ppa.fetch_html("https://example.com/test", debug=False)
+
+            # Should decode successfully with fallback
+            self.assertIsNotNone(result)
 
 
 def run_test_suite():

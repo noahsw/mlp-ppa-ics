@@ -310,6 +310,240 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertNotIn("Game 1:", event_text)
 
 
+    def test_build_url_basic(self):
+        """Test basic URL construction"""
+        url = mlp.build_url("2025-08-16", "division-uuid-123", "schedule-uuid-456")
+
+        # Should contain the base endpoint
+        self.assertIn(mlp.BASE_ENDPOINT, url)
+
+        # Should contain all required query parameters
+        self.assertIn("query_by_schedule_uuid=true", url)
+        self.assertIn("schedule_group_uuid=schedule-uuid-456", url)
+        self.assertIn("division_uuid=division-uuid-123", url)
+        self.assertIn("selected_date=2025-08-16", url)
+
+    def test_build_url_with_different_dates(self):
+        """Test URL construction with various date formats"""
+        test_dates = ["2025-01-01", "2025-12-31", "2024-06-15"]
+
+        for date in test_dates:
+            url = mlp.build_url(date, "div-uuid", "sched-uuid")
+            self.assertIn(f"selected_date={date}", url)
+
+    def test_build_url_query_string_format(self):
+        """Test that URL uses proper query string encoding"""
+        url = mlp.build_url("2025-08-16", "test-div", "test-sched")
+
+        # Should have exactly one '?' separator
+        self.assertEqual(url.count('?'), 1)
+
+        # Should have '&' separators between parameters
+        query_string = url.split('?')[1]
+        params = query_string.split('&')
+        self.assertEqual(len(params), 4)  # 4 query parameters
+
+    def test_headers_function(self):
+        """Test HTTP headers generation"""
+        test_ua = "Test User Agent/1.0"
+        headers = mlp._headers(test_ua)
+
+        # Should contain expected header keys
+        self.assertIn("User-Agent", headers)
+        self.assertIn("Accept", headers)
+        self.assertIn("Accept-Language", headers)
+        self.assertIn("Referer", headers)
+        self.assertIn("Origin", headers)
+
+        # Should use the provided user agent
+        self.assertEqual(headers["User-Agent"], test_ua)
+
+        # Should have correct referer and origin for MLP
+        self.assertEqual(headers["Referer"], "https://majorleaguepickleball.co/")
+        self.assertEqual(headers["Origin"], "https://majorleaguepickleball.co")
+
+    def test_headers_accept_json(self):
+        """Test that headers request JSON content"""
+        headers = mlp._headers("TestUA")
+
+        # Should accept JSON
+        self.assertIn("application/json", headers["Accept"])
+
+    def test_headers_security_headers(self):
+        """Test that security headers are included"""
+        headers = mlp._headers("TestUA")
+
+        # Should have sec-ch-ua headers for Chrome impersonation
+        self.assertIn("sec-ch-ua", headers)
+        self.assertIn("sec-ch-ua-mobile", headers)
+        self.assertIn("sec-ch-ua-platform", headers)
+
+        # Should have Sec-Fetch headers
+        self.assertIn("Sec-Fetch-Site", headers)
+        self.assertIn("Sec-Fetch-Mode", headers)
+        self.assertIn("Sec-Fetch-Dest", headers)
+
+    def test_filter_events_by_date_range_basic(self):
+        """Test basic date range filtering"""
+        from datetime import datetime, timezone, timedelta
+
+        # Create test events
+        events = [
+            {"title": "Past Event", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-01-03T00:00:00Z"},
+            {"title": "Current Event", "start_date": "2025-08-15T00:00:00Z", "end_date": "2025-08-17T00:00:00Z"},
+            {"title": "Future Event", "start_date": "2025-12-01T00:00:00Z", "end_date": "2025-12-03T00:00:00Z"},
+        ]
+
+        # Set date range in August 2025
+        start_date = datetime(2025, 8, 14, tzinfo=timezone.utc)
+        end_date = datetime(2025, 8, 20, tzinfo=timezone.utc)
+
+        result = mlp.filter_events_by_date_range(events, start_date, end_date)
+
+        # Should only include the current event
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["title"], "Current Event")
+
+    def test_filter_events_by_date_range_boundary_conditions(self):
+        """Test date range filtering at exact boundaries"""
+        from datetime import datetime, timezone
+
+        events = [
+            {"title": "Event at start boundary", "start_date": "2025-08-15T00:00:00Z", "end_date": "2025-08-15T12:00:00Z"},
+            {"title": "Event at end boundary", "start_date": "2025-08-19T12:00:00Z", "end_date": "2025-08-20T00:00:00Z"},
+        ]
+
+        start_date = datetime(2025, 8, 15, 0, 0, 0, tzinfo=timezone.utc)
+        end_date = datetime(2025, 8, 20, 0, 0, 0, tzinfo=timezone.utc)
+
+        result = mlp.filter_events_by_date_range(events, start_date, end_date)
+
+        # Both events should be included (they touch the boundaries)
+        self.assertEqual(len(result), 2)
+
+    def test_filter_events_by_date_range_overlapping_events(self):
+        """Test filtering of events that span across the date range"""
+        from datetime import datetime, timezone
+
+        events = [
+            # Event starts before and ends during range
+            {"title": "Spans start", "start_date": "2025-08-10T00:00:00Z", "end_date": "2025-08-16T00:00:00Z"},
+            # Event starts during and ends after range
+            {"title": "Spans end", "start_date": "2025-08-18T00:00:00Z", "end_date": "2025-08-25T00:00:00Z"},
+            # Event completely spans the range
+            {"title": "Spans entire range", "start_date": "2025-08-01T00:00:00Z", "end_date": "2025-08-31T00:00:00Z"},
+            # Event completely within range
+            {"title": "Within range", "start_date": "2025-08-16T00:00:00Z", "end_date": "2025-08-17T00:00:00Z"},
+        ]
+
+        start_date = datetime(2025, 8, 15, tzinfo=timezone.utc)
+        end_date = datetime(2025, 8, 20, tzinfo=timezone.utc)
+
+        result = mlp.filter_events_by_date_range(events, start_date, end_date)
+
+        # All 4 events should be included (they all overlap with the range)
+        self.assertEqual(len(result), 4)
+
+    def test_filter_events_by_date_range_no_matches(self):
+        """Test filtering when no events match the date range"""
+        from datetime import datetime, timezone
+
+        events = [
+            {"title": "Past Event", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-01-05T00:00:00Z"},
+            {"title": "Future Event", "start_date": "2025-12-01T00:00:00Z", "end_date": "2025-12-05T00:00:00Z"},
+        ]
+
+        start_date = datetime(2025, 8, 15, tzinfo=timezone.utc)
+        end_date = datetime(2025, 8, 20, tzinfo=timezone.utc)
+
+        result = mlp.filter_events_by_date_range(events, start_date, end_date)
+
+        self.assertEqual(len(result), 0)
+
+    def test_filter_events_by_date_range_missing_dates(self):
+        """Test filtering handles events with missing date fields"""
+        from datetime import datetime, timezone
+
+        events = [
+            {"title": "No start date", "end_date": "2025-08-17T00:00:00Z"},
+            {"title": "No end date", "start_date": "2025-08-15T00:00:00Z"},
+            {"title": "No dates at all"},
+            {"title": "Valid event", "start_date": "2025-08-16T00:00:00Z", "end_date": "2025-08-17T00:00:00Z"},
+        ]
+
+        start_date = datetime(2025, 8, 15, tzinfo=timezone.utc)
+        end_date = datetime(2025, 8, 20, tzinfo=timezone.utc)
+
+        result = mlp.filter_events_by_date_range(events, start_date, end_date)
+
+        # Only the valid event should be included
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["title"], "Valid event")
+
+    def test_filter_by_primary_court_grandstand(self):
+        """Test filtering matchups by Grandstand court"""
+        matchups = [
+            {"uuid": "1", "matches": [{"court_title": "GS"}, {"court_title": "GS"}]},
+            {"uuid": "2", "matches": [{"court_title": "CC"}]},
+            {"uuid": "3", "matches": [{"court_title": "GS"}, {"court_title": "CC"}, {"court_title": "GS"}]},
+            {"uuid": "4", "matches": []},
+        ]
+
+        result = mlp.filter_by_primary_court(matchups, "GS")
+
+        # Should include matchups 1 and 3 (where GS is primary court)
+        self.assertEqual(len(result), 2)
+        uuids = [m["uuid"] for m in result]
+        self.assertIn("1", uuids)
+        self.assertIn("3", uuids)
+
+    def test_filter_by_primary_court_championship(self):
+        """Test filtering matchups by Championship court"""
+        matchups = [
+            {"uuid": "1", "matches": [{"court_title": "CC"}, {"court_title": "CC"}]},
+            {"uuid": "2", "matches": [{"court_title": "GS"}]},
+            {"uuid": "3", "matches": [{"court_title": "CC"}]},
+        ]
+
+        result = mlp.filter_by_primary_court(matchups, "CC")
+
+        # Should include matchups 1 and 3
+        self.assertEqual(len(result), 2)
+        uuids = [m["uuid"] for m in result]
+        self.assertIn("1", uuids)
+        self.assertIn("3", uuids)
+
+    def test_filter_by_primary_court_no_matches(self):
+        """Test filtering when no matchups have the specified court"""
+        matchups = [
+            {"uuid": "1", "matches": [{"court_title": "GS"}]},
+            {"uuid": "2", "matches": [{"court_title": "GS"}]},
+        ]
+
+        result = mlp.filter_by_primary_court(matchups, "CC")
+
+        # Should return empty list
+        self.assertEqual(len(result), 0)
+
+    def test_filter_by_primary_court_empty_input(self):
+        """Test filtering with empty matchup list"""
+        result = mlp.filter_by_primary_court([], "GS")
+        self.assertEqual(len(result), 0)
+
+    def test_filter_by_primary_court_with_courts_fallback(self):
+        """Test that primary_court_code falls back to courts array"""
+        matchup = {
+            "uuid": "1",
+            "matches": [],  # Empty matches
+            "courts": [{"title": "GS"}]  # Fallback to courts array
+        }
+
+        matchups = [matchup]
+        result = mlp.filter_by_primary_court(matchups, "GS")
+
+        self.assertEqual(len(result), 1)
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     unittest.main(verbosity=2)
