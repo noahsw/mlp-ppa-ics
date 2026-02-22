@@ -1,8 +1,8 @@
-name: Build ICS hourly
+name: Scrape and publish ICS calendars
 
 on:
   schedule:
-    - cron: "0 * * * *"   # hourly (UTC)
+    - cron: "0 12,18,0 * * *"  # 12pm, 6pm, midnight UTC
   workflow_dispatch:
 
 permissions:
@@ -15,8 +15,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  scrape-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,41 +27,29 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps (if any)
-        run: |
-          python -m pip install --upgrade pip
-          # pip install -r requirements.txt
-
       - name: Run tests
-        run: |
-          python run_tests.py
-          if [ $? -ne 0 ]; then
-            echo "Tests failed!"
-            exit 1
-          fi
+        run: python run_tests.py
 
-      # Optional but useful: see exactly what the endpoint returns from Actions
-      - name: Probe MLP endpoint (debug)
+      - name: Warm up MLP endpoint
         run: |
           URL="https://majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event?query_by_schedule_uuid=true&schedule_group_uuid=141fe139-b4d2-4846-ac9f-a36b5dd6db41&division_uuid=5668ed34-5aa6-494d-808f-f5512ae89379&selected_date=$(date -u +%F)"
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
-          echo "$URL"
-          curl -v -A "$UA" \
+          curl -s -A "$UA" \
             -H "Referer: https://majorleaguepickleball.co/" \
             -H "Origin: https://majorleaguepickleball.co" \
             -H "Accept: application/json, text/plain, */*" \
-            "$URL" || true
+            "$URL" > /dev/null || true
 
-      - name: Generate ICS (with debug)
+      - name: Scrape and generate ICS files
         run: |
+          mkdir -p _site
           python make_mlp_ics_multi.py --debug
           python make_ppa_ics.py --debug
-
-          # Minimal index so Pages lists links
-          cat > index.html << 'HTML'
+          mv *.ics _site/ 2>/dev/null || true
+          cat > _site/index.html << 'HTML'
           <!doctype html><meta charset="utf-8">
-          <title>MLP ICS</title>
-          <h1>MLP ICS</h1>
+          <title>MLP and PPA ICS</title>
+          <h1>MLP and PPA ICS Calendars</h1>
           <ul>
             <li><a href="mlp.ics">mlp.ics</a></li>
             <li><a href="mlp-premier.ics">mlp-premier.ics</a></li>
@@ -67,21 +58,15 @@ jobs:
             <li><a href="mlp-challenger.ics">mlp-challenger.ics</a></li>
             <li><a href="mlp-challenger-grandstand.ics">mlp-challenger-grandstand.ics</a></li>
             <li><a href="mlp-challenger-championship.ics">mlp-challenger-championship.ics</a></li>
-          <li><a href="ppa.ics">ppa.ics</a></li>
+            <li><a href="ppa.ics">ppa.ics</a></li>
           </ul>
           HTML
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
