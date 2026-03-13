@@ -145,12 +145,12 @@ def fetch_json(url: str, debug: bool = False, max_attempts: int = 4, base_delay:
                         print(f"  ! Non-200: {status}\n  Body(head): {body[:200]}")
                     raise HTTPError(url, status, f"HTTP {status}", None, None)
                 return json.loads(body)
-        except HTTPError as e:
+        except (HTTPError, TimeoutError) as e:
             code = getattr(e, "code", "HTTPError")
             if debug:
                 print(f"  !! HTTPError: {code}")
             # Backoff on retryable statuses; 403 often WAF—still try rotated UA
-        except URLError as e:
+        except (URLError, OSError) as e:
             if debug:
                 print(f"  !! URLError: {e}")
         except json.JSONDecodeError as e:
