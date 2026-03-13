@@ -113,7 +113,7 @@ def fetch_html(url: str, debug: bool = False, max_retries: int = 3, timeout: int
                             print("latin-1 decoding failed, using UTF-8 with error replacement...")
                         return content.decode('utf-8', errors='replace')
 
-        except (URLError, HTTPError) as e:
+        except (URLError, HTTPError, OSError) as e:
             import time
             error_msg = f"Network error on attempt {attempt}/{max_retries}: {e}"
             if attempt == max_retries:
