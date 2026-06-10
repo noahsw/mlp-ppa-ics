@@ -13,7 +13,7 @@ Outputs (7 files):
 
 Pulls data for yesterday + today + next 4 days (configurable via --days).
 Calendar display name (X-WR-CALNAME) is fixed to "MLP Matchups".
-Event titles always use full court names when known, never two-letter codes.
+Court names appear in the event description, not the title.
 
 Court mapping:
   "GS" -> "Grandstand Court"
@@ -249,9 +249,7 @@ def primary_court_code(matchup: Dict[str, Any]) -> Optional[str]:
 def make_event_title(matchup: Dict[str, Any]) -> str:
     away = (matchup.get("team_two_title") or "").strip()
     home = (matchup.get("team_one_title") or "").strip()
-    code = primary_court_code(matchup)
-    court_label = court_label_from_code(code)
-    return f"{away} vs. {home}" if not court_label else f"{away} vs. {home} ({court_label})"
+    return f"{away} vs. {home}"
 
 def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -> List[str]:
     start = fmt_dt_utc(matchup["planned_start_date"])
@@ -267,6 +265,10 @@ def build_event(matchup: Dict[str, Any], dtstamp_utc: str, division_name: str) -
     if header_line:
         desc_parts.append(header_line)
     desc_parts.append(f"Division: {division_name}")
+    code = primary_court_code(matchup)
+    court_label = court_label_from_code(code)
+    if court_label:
+        desc_parts.append(f"Court: {court_label}")
 
     # Check if matchup is completed and has scores
     matchup_status = matchup.get("matchup_status", "")

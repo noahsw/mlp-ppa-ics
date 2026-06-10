@@ -86,7 +86,7 @@ class TestMLPICSGenerator(unittest.TestCase):
             "team_two_title": "Away Team",
             "matches": [{"court_title": "GS"}]
         }
-        expected = "Away Team vs. Home Team (Grandstand Court)"
+        expected = "Away Team vs. Home Team"
         self.assertEqual(mlp.make_event_title(matchup_with_court), expected)
 
         # Without court
@@ -144,17 +144,15 @@ class TestMLPICSGenerator(unittest.TestCase):
         self.assertIn("UID:sample-completed-123@mlp", event_text)
         self.assertIn("SUMMARY:Texas Ranchers vs. Miami Pickleball Club", event_text)
 
-        # Check for score information in description
-        self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", event_text)
-        self.assertIn("Mixed Doubles", event_text)
-        self.assertIn("Texas Ranchers 9 - 11 Miami Pickleball Club", event_text)
-        self.assertIn("Women's Doubles", event_text)
-        self.assertIn("Texas Ranchers 7 - 11 Miami Pickleball Club", event_text)
-
-        # Check for player information (accounting for ICS escaping and line folding)
-        # ICS line folding can split names across lines, so we need to handle this
-        # Remove line folding to get the actual content
+        # Remove line folding to get the actual content for content checks
         unfolded_text = event_text.replace("\n ", "")
+
+        # Check for score information in description
+        self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", unfolded_text)
+        self.assertIn("Mixed Doubles", unfolded_text)
+        self.assertIn("Texas Ranchers 9 - 11 Miami Pickleball Club", unfolded_text)
+        self.assertIn("Women's Doubles", unfolded_text)
+        self.assertIn("Texas Ranchers 7 - 11 Miami Pickleball Club", unfolded_text)
         
         self.assertIn("Catherine Parenteau", unfolded_text)
         self.assertIn("Jade Kawamoto", unfolded_text)
@@ -222,7 +220,8 @@ class TestMLPICSGenerator(unittest.TestCase):
             self.assertIn("BEGIN:VCALENDAR", content)
             self.assertIn("END:VCALENDAR", content)
             self.assertIn("X-WR-CALNAME:MLP Matchups", content)
-            self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", content)
+            unfolded_content = content.replace("\n ", "")
+            self.assertIn("FINAL SCORE: Texas Ranchers 0 - 3 Miami Pickleball Club", unfolded_content)
 
     @patch('make_mlp_ics_multi.fetch_active_events')
     @patch('make_mlp_ics_multi.fetch_json')

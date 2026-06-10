@@ -379,9 +379,9 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
     broadcaster = event.get('broadcaster', '')
 
     if broadcaster:
-        summary = f"PPA {category} ({court}) - {broadcaster}"
+        summary = f"PPA {category} - {broadcaster}"
     else:
-        summary = f"PPA {category} ({court})"
+        summary = f"PPA {category}"
 
     # Create description
     description_parts = [f"Tournament: {tournament_name}"]
