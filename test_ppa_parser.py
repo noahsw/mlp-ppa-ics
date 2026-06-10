@@ -136,7 +136,7 @@ class TestPPAICSGenerator(unittest.TestCase):
         self.assertIn("DESCRIPTION:", event_text)
 
         # Check content
-        self.assertIn("PPA Singles (Championship Court) - PickleballTV", event_text)
+        self.assertIn("PPA Singles - PickleballTV", event_text)
         self.assertIn("Tournament: Open at the Las Vegas Strip", event_text)
 
     def test_ics_file_generation(self):
@@ -904,7 +904,7 @@ class TestPPAICSGenerator(unittest.TestCase):
             if championship_events_filtered:
                 # Check that championship events are included
                 for event in championship_events_filtered:
-                    expected_summary = f"PPA {event['category']} ({event['court']}) - {event['broadcaster']}"
+                    expected_summary = f"PPA {event['category']} - {event['broadcaster']}"
                     self.assertIn(ppa.ics_escape(expected_summary), content,
                                 f"ICS should contain championship event: {expected_summary}")
 
@@ -950,7 +950,7 @@ class TestPPAICSGenerator(unittest.TestCase):
 
             # Validate each parsed event appears in ICS
             for event in events:
-                expected_summary = f"PPA {event['category']} ({event['court']}) - {event['broadcaster']}"
+                expected_summary = f"PPA {event['category']} - {event['broadcaster']}"
                 self.assertIn(ppa.ics_escape(expected_summary), ics_content,
                             f"ICS should contain event: {expected_summary}")
 
