@@ -512,12 +512,15 @@ def write_all_ics_files(base_filename: str, all_events: List[Dict[str, Any]], to
 
     files_created = 0
     for suffix, filtered_events, calendar_title in filters:
-        if filtered_events:
-            filename = f"{base}{suffix}{ext}"
-            write_ics_file(filename, filtered_events, tournament_name, calendar_title)
-            files_created += 1
-        elif debug:
-            print(f"No events found for {calendar_title}, skipping {base}{suffix}{ext}")
+        # Always write every file, even when a filter matches no events.
+        # These filenames are published as subscription URLs, and a missing
+        # file is a 404 that calendar clients treat as a broken feed. An
+        # empty calendar is handled gracefully by every client.
+        filename = f"{base}{suffix}{ext}"
+        write_ics_file(filename, filtered_events, tournament_name, calendar_title)
+        files_created += 1
+        if debug and not filtered_events:
+            print(f"No events found for {calendar_title}, wrote empty {filename}")
 
     if debug:
         print(f"Created {files_created} ICS files from {len(all_events)} total events")
@@ -777,9 +780,10 @@ def main():
             )
 
     if not events:
-        print("No events found in the HTML content - creating empty ICS file", file=sys.stderr)
-        # Create empty ICS file instead of exiting with error
-        write_ics_file(args.output, [], args.tournament or "PPA Tournament", "PPA Tour")
+        print("No events found in the HTML content - creating empty ICS files", file=sys.stderr)
+        # Create the full set of empty calendars instead of just the base file,
+        # so no published subscription URL starts returning a 404.
+        write_all_ics_files(args.output, [], args.tournament or "PPA Tournament", args.debug)
         return
 
     # Handle championships-only flag for backward compatibility
