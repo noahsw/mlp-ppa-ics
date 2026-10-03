@@ -1190,6 +1190,95 @@ class TestPPAICSGenerator(unittest.TestCase):
                         content = f.read()
                     self.assertIn(expected_title, content, f"{filename} should have title '{expected_title}'")
 
+    def test_events_page_tournament_url_extraction(self):
+        """Test extracting the first /events/ link from the current events listing page"""
+        with open("sample_ppa_events_listing.html", "r", encoding="utf-8") as f:
+            listing_html = f.read()
+
+        url = ppa.extract_first_tournament_url(listing_html)
+        self.assertEqual(url, "https://www.ppatour.com/events/2026/rate-las-vegas-open/")
+
+    def test_event_page_date_range_parsing(self):
+        """Test parsing event date ranges in the formats used on current event pages"""
+        from datetime import date
+        cases = [
+            ('content="PPA Tour Cup · Oct 5–11, 2026 · Chicago, IL"', (date(2026, 10, 5), date(2026, 10, 11))),
+            ('content="PPA Tour Open · Sep 28 – Oct 4, 2026 · Las Vegas, NV"', (date(2026, 9, 28), date(2026, 10, 4))),
+            ('<p>Dec 29<!-- --> – <!-- -->Jan 4, 2027</p>', (date(2026, 12, 29), date(2027, 1, 4))),
+        ]
+        for html_text, expected in cases:
+            with self.subTest(html_text=html_text):
+                self.assertEqual(ppa.parse_event_date_range(html_text), expected)
+
+        self.assertIsNone(ppa.parse_event_date_range("<p>No dates here</p>"))
+
+    def test_event_page_watch_section_parsing(self):
+        """Test parsing the 'Watching at Home' broadcast table on a current event page"""
+        with open("sample_ppa_event_page.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        events = ppa.parse_schedule_content(html_content)
+        self.assertEqual(len(events), 15)
+
+        first = events[0]
+        self.assertEqual(first['date'], '2026-10-06')
+        self.assertEqual(first['category'], 'RD 64')
+        self.assertEqual(first['time'], '3PM ET - 11PM ET')
+        self.assertEqual(first['broadcaster'], 'PickleballTV')
+        self.assertEqual(first['court'], '')
+
+        # Simulcast rows ("Tennis Channel · PBTV") list PickleballTV as the primary broadcaster
+        simulcast = [e for e in events if 'Tennis Channel' in e['broadcasters']]
+        self.assertEqual(len(simulcast), 4)
+        for event in simulcast:
+            self.assertEqual(event['broadcaster'], 'PickleballTV')
+            self.assertEqual(event['broadcasters'], ['PickleballTV', 'Tennis Channel'])
+
+        # ...but still land in the Tennis Channel calendar
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'Tennis Channel')), 4)
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'PickleballTV')), 12)
+
+        # Draws and courts aren't listed, so every window goes in every draw/court calendar
+        self.assertEqual(len(ppa.filter_singles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_gender_doubles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_mixed_doubles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_by_court(events, 'Championship Court')), 15)
+        self.assertEqual(len(ppa.filter_by_court(events, 'Grandstand Court')), 15)
+
+        # Tape-delayed rows keep the "(Tape)" marker in the category
+        self.assertIn("SF's (Tape)", [e['category'] for e in events])
+
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'FS1')), 2)
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'FS2')), 2)
+        self.assertEqual(len(ppa.filter_championship_events(events)), 3)
+        self.assertEqual(ppa.extract_tournament_name(html_content, ""), "Veolia Chicago Cup")
+
+    def test_event_page_ics_generation(self):
+        """Test ICS output for current event pages: compact times, UTC conversion, unique UIDs"""
+        with open("sample_ppa_event_page.html", "r", encoding="utf-8") as f:
+            events = ppa.parse_schedule_content(f.read())
+
+        # "6PM ET - 8PM ET" on Thu Oct 8 2026 (EDT) is 22:00-00:00 UTC
+        self.assertEqual(ppa.parse_time_range("6PM ET - 8PM ET", "2026-10-08"),
+                         ("2026-10-08T22:00:00Z", "2026-10-09T00:00:00Z"))
+        self.assertEqual(ppa.parse_time_range("5:30PM ET - 7:30PM ET", "2026-10-11"),
+                         ("2026-10-11T21:30:00Z", "2026-10-11T23:30:00Z"))
+
+        dtstamp = "20261001T000000Z"
+        uids = []
+        for event in events:
+            lines = ppa.create_ics_event(event, "Veolia Chicago Cup", dtstamp)
+            self.assertTrue(lines, f"Event should produce ICS lines: {event}")
+            uids.extend(line for line in lines if line.startswith("UID:"))
+            self.assertFalse(any(line.startswith("DESCRIPTION:") and "Court:" in line for line in lines))
+
+            summary = next(line for line in lines if line.startswith("SUMMARY:"))
+            if event['broadcasters'] == ['PickleballTV', 'Tennis Channel']:
+                self.assertTrue(summary.endswith(" - PickleballTV / Tennis Channel"), summary)
+
+        # Same broadcaster/round can have multiple windows per day (e.g. Thursday PBTV)
+        self.assertEqual(len(uids), len(set(uids)), "UIDs must be unique")
+
     def test_fetch_html_with_mock_success(self):
         """Test fetch_html with mocked successful response"""
         with patch('make_ppa_ics.urlopen') as mock_urlopen:

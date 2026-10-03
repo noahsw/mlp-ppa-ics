@@ -10,6 +10,8 @@ Generate live-updating **.ics** calendars for both Major League Pickleball (MLP)
 
 Use any of these URLs when subscribing (pick one or many):
 
+> **Note:** The redesigned ppatour.com (2026) only publishes broadcast windows by round and channel, not by court or draw. Assuming progressive draws (every draw plays every day), the Singles, Men's/Women's Doubles, Mixed Doubles and court calendars below currently contain every broadcast window. When PickleballTV simulcasts a window with another channel, PickleballTV is listed first, and the window still appears in the other channel's calendar.
+
 - **Combined (Premier + Challenger, all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp.ics
 
 - **Premier (all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp-premier.ics
@@ -110,8 +112,8 @@ Samsung Calendar will display calendars from your Google account. Follow the **G
 
 ### PPA Calendar Generation
 
-* Scrapes PPA tournament schedule pages from `ppatour.com`
-* Parses tournament event details including dates, times, courts, categories, and broadcasters
+* Scrapes PPA event pages from `ppatour.com` (`/events/{year}/{slug}/`)
+* Parses the "Watching at Home" broadcast table (round, day, channels, ET window); the legacy `#how-to-watch` layout with courts and categories is still supported
 * Supports both direct tournament URLs and automatic tournament discovery from schedule pages
 * Converts Eastern Time to UTC for proper calendar display
 * Generates multiple specialized ICS files:
@@ -163,11 +165,11 @@ Options:
 
 #### PPA Calendars
 Usage:
-  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
-  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/
+  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/events/2026/rate-las-vegas-open/
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/events/
   python make_ppa_ics.py --tournament-schedule-file sample_ppa_tournament_schedule.html --tournament "Open at the Las Vegas Strip"
   python make_ppa_ics.py --tour-schedule-file sample_ppa_tour_schedule.html
-  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/ --championships-only
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/events/ --championships-only
 
 Options:
 * `--output filename.ics` – specify base output filename (default: ppa.ics)
