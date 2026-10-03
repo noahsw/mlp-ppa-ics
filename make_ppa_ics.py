@@ -6,8 +6,8 @@ Scrapes PPA tournament schedule pages and generates ICS calendar files.
 Can work with both live URLs and local HTML files for testing.
 
 Usage:
-  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/tournament/2025/open-at-the-las-vegas-strip/#schedule
-  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/schedule/
+  python make_ppa_ics.py --tournament-schedule-url https://www.ppatour.com/events/2026/rate-las-vegas-open/
+  python make_ppa_ics.py --tour-schedule-url https://www.ppatour.com/events/
   python make_ppa_ics.py --tournament-schedule-file sample_ppa_schedule.html --tournament "Open at the Las Vegas Strip"
   python make_ppa_ics.py --tour-schedule-file sample_ppa_tournaments.html
 """
@@ -17,7 +17,7 @@ import re
 import sys
 import argparse
 import html
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional, Tuple
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
@@ -155,7 +155,9 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
     """Extract the first tournament URL from the schedule page."""
     # Try multiple patterns to find tournament links
     patterns = [
-        # Pattern with class (both www and non-www versions)
+        # Current site: event pages live at /events/{year}/{slug}/ (usually relative links)
+        r'href="((?:https://(?:www\.)?ppatour\.com)?/events/\d{4}/[a-z0-9-]+/?)"',
+        # Legacy site: pattern with class (both www and non-www versions)
         r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"[^>]*class="tournament-schedule__item-link-wrap"',
         # Alternative pattern without class requirement (both www and non-www versions)
         r'<a\s+href="(https://(?:www\.)?ppatour\.com/tournament/[^"]+)"',
@@ -179,11 +181,39 @@ def extract_first_tournament_url(html_content: str) -> Optional[str]:
     return None
 
 
+def extract_tournament_name(html_content: str, tournament_url: str) -> str:
+    """Get the tournament name from the page's <h1>, falling back to the URL slug."""
+    h1_match = re.search(r'<h1[^>]*>(.*?)</h1>', html_content, re.DOTALL)
+    if h1_match:
+        name = _html_text(h1_match.group(1))
+        if name:
+            return name
+
+    url_match = re.search(r'/(?:events|tournament)/\d+/([^/#?]+)', tournament_url)
+    if url_match:
+        return url_match.group(1).replace('-', ' ').title()
+    return "Tournament"
+
+
 def parse_schedule_content(html_content: str, debug: bool = False) -> List[Dict[str, Any]]:
     """Parse HTML content and extract schedule events."""
     events = []
 
-    # Look for the "how-to-watch" schedule section in the actual PPA website structure
+    # Current site: "Watching at Home" broadcast table in the #watch section
+    watch_match = re.search(
+        r'<section[^>]*id="watch"[^>]*>(.*?)</section>', html_content,
+        re.DOTALL)
+    if watch_match:
+        date_range = parse_event_date_range(html_content)
+        if date_range:
+            events = parse_watch_section(watch_match.group(1), *date_range)
+        elif debug:
+            print("Found '#watch' section but could not determine the event date range.")
+        if not events and debug:
+            print("No events were parsed from the HTML content.")
+        return events
+
+    # Legacy site: "how-to-watch" schedule section
     schedule_match = re.search(
         r'<section[^>]*id="how-to-watch"[^>]*>(.*?)</section>', html_content,
         re.DOTALL)
@@ -199,8 +229,97 @@ def parse_schedule_content(html_content: str, debug: bool = False) -> List[Dict[
     return events
 
 
+# Channel labels used on the current site, mapped to the names used in output files
+BROADCASTER_NAMES = {
+    'pbtv': 'PickleballTV',
+    'pickleballtv': 'PickleballTV',
+    'tennis channel': 'Tennis Channel',
+    'fs1': 'FS1',
+    'fs2': 'FS2',
+    'espn2': 'ESPN2',
+}
+
+
+def _html_text(fragment: str) -> str:
+    """Strip tags from an HTML fragment and collapse whitespace."""
+    text = html.unescape(re.sub(r'<[^>]+>', ' ', fragment))
+    return re.sub(r'\s+', ' ', text).strip()
+
+
+def parse_event_date_range(html_content: str) -> Optional[Tuple[date, date]]:
+    """Find the event's date range, e.g. "Sep 28 – Oct 4, 2026" or "Oct 5–11, 2026".
+
+    The event's own range appears first on the page (in the meta description),
+    ahead of ranges for other events listed further down.
+    """
+    content = html_content.replace('<!-- -->', '')
+    pattern = r'\b([A-Z][a-z]{2,8})\.?\s+(\d{1,2})\s*[–—-]\s*(?:([A-Z][a-z]{2,8})\.?\s+)?(\d{1,2}),\s*(\d{4})'
+    for match in re.finditer(pattern, content):
+        start_month, start_day, end_month, end_day, year = match.groups()
+        try:
+            start_month_num = datetime.strptime(start_month[:3], '%b').month
+            end_month_num = datetime.strptime((end_month or start_month)[:3], '%b').month
+            end = date(int(year), end_month_num, int(end_day))
+            start = date(int(year), start_month_num, int(start_day))
+        except ValueError:
+            continue  # Not a month name / not a real date; keep looking
+
+        # Ranges spanning New Year ("Dec 29 – Jan 4, 2027") carry the end year
+        if start > end:
+            start = start.replace(year=start.year - 1)
+        return start, end
+
+    return None
+
+
+def parse_watch_section(section_html: str, start: date, end: date) -> List[Dict[str, Any]]:
+    """Parse the "Watching at Home" broadcast table on a current-site event page.
+
+    Each row has a round (optionally tagged "(Tape)"), a weekday, one or more
+    channels separated by "·", and an ET time window like "3PM ET - 5:30PM ET".
+    """
+    events = []
+
+    # Map weekday names to dates within the event; later dates win if a range exceeds a week
+    weekday_dates = {}
+    day = start
+    while day <= end:
+        weekday_dates[day.strftime('%A').lower()] = day.strftime('%Y-%m-%d')
+        day += timedelta(days=1)
+
+    for row in re.split(r'<div class="grid\b', section_html)[1:]:
+        row = row.split('</div>', 1)[0]
+        cells = [_html_text(cell) for cell in re.split(r'<span class="block\b[^"]*">', row)[1:]]
+        if len(cells) < 4:
+            continue  # Header row or unrecognized layout
+
+        category, weekday, channels, time_text = cells[:4]
+        event_date = weekday_dates.get(weekday.lower())
+        if not event_date:
+            continue
+
+        broadcasters = []
+        for channel in channels.split('·'):
+            channel = channel.strip()
+            if channel:
+                broadcasters.append(BROADCASTER_NAMES.get(channel.lower(), channel))
+        if not broadcasters:
+            continue
+
+        events.append({
+            'date': event_date,
+            'court': '',
+            'category': category,
+            'time': time_text,
+            'broadcaster': broadcasters[0],
+            'broadcasters': broadcasters,
+        })
+
+    return events
+
+
 def parse_ppa_website_structure(schedule_html: str) -> List[Dict[str, Any]]:
-    """Parse the actual PPA website structure."""
+    """Parse the legacy PPA website structure (#how-to-watch section)."""
     events = []
 
     # Extract day sections
@@ -317,19 +436,18 @@ def parse_date_text(date_text: str) -> Optional[str]:
 def parse_time_range(time_str: str,
                      event_date: str) -> Tuple[Optional[str], Optional[str]]:
     """Parse time range string into UTC datetime strings."""
-    # Parse "2:00 PM ET - 10:00 PM ET" format or "10:00 AM - 6:00 PM ET" format
+    # Parse "2:00 PM ET - 10:00 PM ET", "10:00 AM - 6:00 PM ET" or "5PM ET - 1AM ET" formats
     match = re.match(
-        r'(\d{1,2}:\d{2}\s*(?:AM|PM))(?:\s*ET)?\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*ET',
+        r'(\d{1,2})(?::(\d{2}))?\s*(AM|PM)(?:\s*ET)?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\s*ET',
         time_str, re.IGNORECASE)
     if not match:
         return None, None
 
-    start_time, end_time = match.groups()
+    start_hour, start_min, start_ampm, end_hour, end_min, end_ampm = match.groups()
+    start_time = f"{start_hour}:{start_min or '00'} {start_ampm.upper()}"
+    end_time = f"{end_hour}:{end_min or '00'} {end_ampm.upper()}"
 
     try:
-        # Parse the date
-        event_dt = datetime.strptime(event_date, '%Y-%m-%d')
-
         # Parse start time
         start_dt = datetime.strptime(f"{event_date} {start_time}",
                                      '%Y-%m-%d %I:%M %p')
@@ -375,8 +493,9 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
 
     # Create event title
     category = event.get('category', 'Tournament')
-    court = event.get('court', 'Court')
+    court = event.get('court', '')
     broadcaster = event.get('broadcaster', '')
+    broadcasters = event.get('broadcasters') or ([broadcaster] if broadcaster else [])
 
     if broadcaster:
         summary = f"PPA {category} - {broadcaster}"
@@ -389,16 +508,22 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
         description_parts.append(f"Category: {category}")
     if court:
         description_parts.append(f"Court: {court}")
-    if broadcaster:
-        description_parts.append(f"Broadcaster: {broadcaster}")
+    if broadcasters:
+        description_parts.append(f"Broadcaster: {', '.join(broadcasters)}")
 
     description = "\n".join(description_parts)
 
-    # Create unique ID
+    # Create unique ID (current-site rows have no court, and one broadcaster can have
+    # several windows per day, so key them by start time and broadcaster instead)
     date_str = event['date'].replace('-', '')
-    court_slug = re.sub(r'[^a-zA-Z0-9]', '', court.lower())
     category_slug = re.sub(r'[^a-zA-Z0-9]', '', category.lower())
-    uid = f"ppa-{date_str}-{court_slug}-{category_slug}@ppatour.com"
+    if court:
+        court_slug = re.sub(r'[^a-zA-Z0-9]', '', court.lower())
+        uid = f"ppa-{date_str}-{court_slug}-{category_slug}@ppatour.com"
+    else:
+        broadcaster_slug = re.sub(r'[^a-zA-Z0-9]', '', broadcaster.lower())
+        start_slug = re.sub(r'[^0-9]', '', start_time)
+        uid = f"ppa-{start_slug}-{broadcaster_slug}-{category_slug}@ppatour.com"
 
     # Format times for ICS
     start_ics = start_time.replace('-', '').replace(':', '').replace('Z', 'Z')
@@ -623,13 +748,9 @@ def fetch_tournament_from_schedule(schedule_url: str, debug: bool = False) -> Tu
             print(f"Failed to fetch tournament page: {tournament_url}")
         return None, None, None
 
-    # Extract tournament name from URL
-    tournament_name = "Tournament"
-    url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
-    if url_match:
-        tournament_name = url_match.group(1).replace('-', ' ').title()
-        if debug:
-            print(f"Extracted tournament name: {tournament_name}")
+    tournament_name = extract_tournament_name(tournament_html, tournament_url)
+    if debug:
+        print(f"Extracted tournament name: {tournament_name}")
 
     return tournament_html, tournament_url, tournament_name
 
@@ -666,7 +787,7 @@ def main():
 
     # Default to tour schedule URL if no source is specified
     if not any([args.tournament_schedule_url, args.tour_schedule_url, args.tournament_schedule_file, args.tour_schedule_file]):
-        args.tour_schedule_url = "https://www.ppatour.com/schedule/"
+        args.tour_schedule_url = "https://www.ppatour.com/events/"
         if args.debug:
             print("No source specified, defaulting to PPA schedule page")
 
@@ -678,6 +799,9 @@ def main():
             html_content = read_html_file(args.tournament_schedule_file, debug=args.debug)
         except IOError:
             sys.exit(1)
+
+        if args.tournament == "Tournament":
+            args.tournament = extract_tournament_name(html_content, "")
 
         # Parse tournament schedule from file
         events = parse_schedule_content(html_content, args.debug)
@@ -712,11 +836,9 @@ def main():
                 print(f"Failed to fetch tournament page: {tournament_url}", file=sys.stderr)
                 sys.exit(1)
 
-            # Extract tournament name from URL if not provided
+            # Extract tournament name if not provided
             if args.tournament == "Tournament":
-                url_match = re.search(r'/tournament/\d+/([^/]+)/?', tournament_url)
-                if url_match:
-                    args.tournament = url_match.group(1).replace('-', ' ').title()
+                args.tournament = extract_tournament_name(html_content, tournament_url)
 
             events = parse_schedule_content(html_content, args.debug)
 
@@ -762,6 +884,9 @@ def main():
             print("  - Website blocking automated requests", file=sys.stderr)
             print("  - Try using a local HTML file: --tournament-schedule-file [FILE]", file=sys.stderr)
             sys.exit(1)
+
+        if args.tournament == "Tournament":
+            args.tournament = extract_tournament_name(html_content, tournament_url)
 
         events = parse_schedule_content(html_content, args.debug)
 

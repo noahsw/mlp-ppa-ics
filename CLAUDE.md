@@ -28,7 +28,7 @@ mlp-ppa-ics/
 │
 ├── Sample Data (for testing):
 │   ├── sample_mlp_*.json        # MLP API response fixtures
-│   └── sample_ppa_*.html        # PPA HTML page fixtures
+│   └── sample_ppa_*.html        # PPA HTML page fixtures (sample_ppa_event_page.html / sample_ppa_events_listing.html = current site)
 │
 ├── Configuration:
 │   ├── .github/workflows/build-ics.yml  # GitHub Actions (hourly)
@@ -204,8 +204,9 @@ The workflow (`.github/workflows/build-ics.yml`) runs hourly:
 - Matchups: `majorleaguepickleball.co/wp-json/fau-scores-and-stats/v1/single-event`
 
 ### PPA Website
-- Tour schedule: `ppatour.com/schedule/`
-- Tournament pages: `ppatour.com/tournament/{year}/{slug}/#schedule`
+- Events listing: `ppatour.com/events/` (`/schedule/` redirects here)
+- Event pages: `ppatour.com/events/{year}/{slug}/` - broadcast windows in the `#watch` section, date range in the meta description
+- Legacy tournament pages (`ppatour.com/tournament/{year}/{slug}/#how-to-watch`) are still parsed as a fallback
 
 **Note:** These are unofficial data sources. Website structure changes may break parsing.
 
