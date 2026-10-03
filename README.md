@@ -10,7 +10,7 @@ Generate live-updating **.ics** calendars for both Major League Pickleball (MLP)
 
 Use any of these URLs when subscribing (pick one or many):
 
-> **Note:** The redesigned ppatour.com (2026) only publishes broadcast windows by round and channel, not by court or event type. The Singles, Men's/Women's Doubles, Mixed Doubles and court calendars below are only populated for older-format tournament pages.
+> **Note:** The redesigned ppatour.com (2026) only publishes broadcast windows by round and channel, not by court or draw. Assuming progressive draws (every draw plays every day), the Singles, Men's/Women's Doubles, Mixed Doubles and court calendars below currently contain every broadcast window. When PickleballTV simulcasts a window with another channel, PickleballTV is listed first, and the window still appears in the other channel's calendar.
 
 - **Combined (Premier + Challenger, all courts):** https://noahsw.github.io/mlp-ppa-ics/mlp.ics
 

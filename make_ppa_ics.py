@@ -306,6 +306,11 @@ def parse_watch_section(section_html: str, start: date, end: date) -> List[Dict[
         if not broadcasters:
             continue
 
+        # PickleballTV is the primary broadcaster whenever it carries the window
+        if 'PickleballTV' in broadcasters:
+            broadcasters.remove('PickleballTV')
+            broadcasters.insert(0, 'PickleballTV')
+
         events.append({
             'date': event_date,
             'court': '',
@@ -313,6 +318,10 @@ def parse_watch_section(section_html: str, start: date, end: date) -> List[Dict[
             'time': time_text,
             'broadcaster': broadcasters[0],
             'broadcasters': broadcasters,
+            # The site no longer lists draws or courts per window. Assume progressive
+            # draws (every draw plays every day), so the window belongs in every
+            # draw and court calendar.
+            'all_draws': True,
         })
 
     return events
@@ -497,8 +506,8 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
     broadcaster = event.get('broadcaster', '')
     broadcasters = event.get('broadcasters') or ([broadcaster] if broadcaster else [])
 
-    if broadcaster:
-        summary = f"PPA {category} - {broadcaster}"
+    if broadcasters:
+        summary = f"PPA {category} - {' / '.join(broadcasters)}"
     else:
         summary = f"PPA {category}"
 
@@ -521,7 +530,7 @@ def create_ics_event(event: Dict[str, Any], tournament_name: str,
         court_slug = re.sub(r'[^a-zA-Z0-9]', '', court.lower())
         uid = f"ppa-{date_str}-{court_slug}-{category_slug}@ppatour.com"
     else:
-        broadcaster_slug = re.sub(r'[^a-zA-Z0-9]', '', broadcaster.lower())
+        broadcaster_slug = re.sub(r'[^a-zA-Z0-9]', '', '-'.join(broadcasters).lower())
         start_slug = re.sub(r'[^0-9]', '', start_time)
         uid = f"ppa-{start_slug}-{broadcaster_slug}-{category_slug}@ppatour.com"
 
@@ -559,7 +568,8 @@ def filter_championship_events(events: List[Dict[str, Any]]) -> List[Dict[str, A
 
 def filter_singles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter events to include only Singles events."""
-    return [event for event in events if "singles" in event.get("category", "").lower()]
+    return [event for event in events
+            if event.get("all_draws") or "singles" in event.get("category", "").lower()]
 
 
 def filter_gender_doubles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -568,24 +578,28 @@ def filter_gender_doubles_events(events: List[Dict[str, Any]]) -> List[Dict[str,
     for event in events:
         category = event.get("category", "").lower()
         # Match various gender doubles patterns
-        if any(keyword in category for keyword in ["men's", "women's", "men's/women's", "gender"]):
+        if event.get("all_draws") or any(keyword in category for keyword in ["men's", "women's", "men's/women's", "gender"]):
             gender_doubles_events.append(event)
     return gender_doubles_events
 
 
 def filter_mixed_doubles_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter events to include only Mixed Doubles events."""
-    return [event for event in events if "mixed" in event.get("category", "").lower()]
+    return [event for event in events
+            if event.get("all_draws") or "mixed" in event.get("category", "").lower()]
 
 
 def filter_by_broadcaster(events: List[Dict[str, Any]], broadcaster: str) -> List[Dict[str, Any]]:
-    """Filter events by broadcaster."""
-    return [event for event in events if event.get("broadcaster", "").lower() == broadcaster.lower()]
+    """Filter events by broadcaster, including windows it simulcasts with another channel."""
+    broadcaster = broadcaster.lower()
+    return [event for event in events
+            if broadcaster in [b.lower() for b in event.get("broadcasters") or [event.get("broadcaster", "")]]]
 
 
 def filter_by_court(events: List[Dict[str, Any]], court: str) -> List[Dict[str, Any]]:
     """Filter events by court name."""
-    return [event for event in events if court.lower() in event.get("court", "").lower()]
+    return [event for event in events
+            if event.get("all_draws") or court.lower() in event.get("court", "").lower()]
 
 
 def write_ics_file(filename: str, events: List[Dict[str, Any]],

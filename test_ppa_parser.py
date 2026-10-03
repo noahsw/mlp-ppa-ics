@@ -1227,10 +1227,23 @@ class TestPPAICSGenerator(unittest.TestCase):
         self.assertEqual(first['broadcaster'], 'PickleballTV')
         self.assertEqual(first['court'], '')
 
-        # Simulcast rows keep the first-listed channel as the primary broadcaster
-        simulcast = [e for e in events if e['broadcaster'] == 'Tennis Channel']
+        # Simulcast rows ("Tennis Channel · PBTV") list PickleballTV as the primary broadcaster
+        simulcast = [e for e in events if 'Tennis Channel' in e['broadcasters']]
         self.assertEqual(len(simulcast), 4)
-        self.assertEqual(simulcast[0]['broadcasters'], ['Tennis Channel', 'PickleballTV'])
+        for event in simulcast:
+            self.assertEqual(event['broadcaster'], 'PickleballTV')
+            self.assertEqual(event['broadcasters'], ['PickleballTV', 'Tennis Channel'])
+
+        # ...but still land in the Tennis Channel calendar
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'Tennis Channel')), 4)
+        self.assertEqual(len(ppa.filter_by_broadcaster(events, 'PickleballTV')), 12)
+
+        # Draws and courts aren't listed, so every window goes in every draw/court calendar
+        self.assertEqual(len(ppa.filter_singles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_gender_doubles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_mixed_doubles_events(events)), 15)
+        self.assertEqual(len(ppa.filter_by_court(events, 'Championship Court')), 15)
+        self.assertEqual(len(ppa.filter_by_court(events, 'Grandstand Court')), 15)
 
         # Tape-delayed rows keep the "(Tape)" marker in the category
         self.assertIn("SF's (Tape)", [e['category'] for e in events])
@@ -1258,6 +1271,10 @@ class TestPPAICSGenerator(unittest.TestCase):
             self.assertTrue(lines, f"Event should produce ICS lines: {event}")
             uids.extend(line for line in lines if line.startswith("UID:"))
             self.assertFalse(any(line.startswith("DESCRIPTION:") and "Court:" in line for line in lines))
+
+            summary = next(line for line in lines if line.startswith("SUMMARY:"))
+            if event['broadcasters'] == ['PickleballTV', 'Tennis Channel']:
+                self.assertTrue(summary.endswith(" - PickleballTV / Tennis Channel"), summary)
 
         # Same broadcaster/round can have multiple windows per day (e.g. Thursday PBTV)
         self.assertEqual(len(uids), len(set(uids)), "UIDs must be unique")
