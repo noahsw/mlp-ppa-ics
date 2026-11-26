@@ -1128,8 +1128,8 @@ class TestPPAICSGenerator(unittest.TestCase):
                 self.assertEqual(actual_count, expected_count,
                                f"{filename} should have {expected_count} events, got {actual_count}")
 
-    def test_write_all_ics_files_skips_empty_filters(self):
-        """Test that write_all_ics_files skips filters that produce no events"""
+    def test_write_all_ics_files_always_writes_all_files(self):
+        """Test that write_all_ics_files writes every file, empty ones included"""
         with tempfile.TemporaryDirectory() as temp_dir:
             base_file = os.path.join(temp_dir, "ppa.ics")
 
@@ -1141,23 +1141,28 @@ class TestPPAICSGenerator(unittest.TestCase):
             # Call write_all_ics_files
             ppa.write_all_ics_files(base_file, test_events, "Test Tournament", debug=False)
 
-            # Files that should be created (have matching events)
-            expected_created = ['ppa.ics', 'ppa-singles.ics', 'ppa-pickleballtv.ics', 'ppa-championship-court.ics']
+            # Files that contain the single test event
+            expected_with_events = ['ppa.ics', 'ppa-singles.ics', 'ppa-pickleballtv.ics', 'ppa-championship-court.ics']
 
-            # Files that should NOT be created (no matching events)
-            expected_not_created = [
+            # Files that match no events, but must still be published as empty
+            # calendars so their subscription URLs never 404
+            expected_empty = [
                 'ppa-championships.ics', 'ppa-mixed-doubles.ics', 'ppa-gender-doubles.ics',
                 'ppa-tennis-channel.ics', 'ppa-fs1.ics', 'ppa-fs2.ics', 'ppa-espn2.ics',
                 'ppa-grandstand-court.ics'
             ]
 
-            for filename in expected_created:
+            for filename in expected_with_events + expected_empty:
                 file_path = os.path.join(temp_dir, filename)
                 self.assertTrue(os.path.exists(file_path), f"Expected file should exist: {filename}")
-
-            for filename in expected_not_created:
-                file_path = os.path.join(temp_dir, filename)
-                self.assertFalse(os.path.exists(file_path), f"File should not exist (no matching events): {filename}")
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                self.assertIn("BEGIN:VCALENDAR", content, f"{filename} should be a valid calendar")
+                self.assertIn("END:VCALENDAR", content, f"{filename} should be a valid calendar")
+                if filename in expected_empty:
+                    self.assertNotIn("BEGIN:VEVENT", content, f"{filename} should be empty")
+                else:
+                    self.assertIn("BEGIN:VEVENT", content, f"{filename} should contain the event")
 
     def test_write_all_ics_files_correct_calendar_titles(self):
         """Test that write_all_ics_files sets correct calendar titles for each file"""
